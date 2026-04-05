@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>野球育成サクセス</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css"> <style>
+        body { font-family: sans-serif; background: #f0f0f0; margin: 0; padding: 10px; }
+        .hidden { display: none !important; }
+        #status-bar { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .gauge-container { width: 100%; background: #ddd; height: 10px; border-radius: 5px; margin: 5px 0; }
+        #energy-gauge { height: 100%; background: #4caf50; border-radius: 5px; transition: width 0.3s; }
+        .screen { background: #fff; padding: 20px; border-radius: 8px; min-height: 400px; }
+        .training-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { width: 100%; padding: 12px; margin: 5px 0; cursor: pointer; }
+        #event-dialog { border: 3px solid #333; padding: 15px; background: #fffbe6; }
+    </style>
+</head>
+<body>
+
+    <header id="status-bar" class="hidden">
+        <div id="calendar-display">1年 4月 1週</div>
+        <div>
+            体力: <span id="energy-text">100/100</span>
+            <div class="gauge-container"><div id="energy-gauge"></div></div>
+        </div>
+        <div id="param-display">
+            筋力: <span id="p-muscle">0</span> | 技術: <span id="p-tech">0</span> | 素早さ: <span id="p-speed">0</span>
+        </div>
+    </header>
+
+    <section id="screen-start" class="screen">
+        <h2>高校選択</h2>
+        <div id="school-list">読み込み中...</div>
+    </section>
+
+    <section id="screen-main" class="screen hidden">
+        <h3>今週の行動を選択</h3>
+        <div class="training-grid" id="training-list"></div>
+    </section>
+
+    <section id="screen-event" class="screen hidden">
+        <div id="event-dialog">
+            <h4 id="event-title">イベント発生</h4>
+            <p id="event-text"></p>
+            <div id="event-choices"></div>
+        </div>
+    </section>
+
+    <section id="screen-match" class="screen hidden">
+        <h2>試合中...</h2>
+        <div id="scoreboard" style="font-family: monospace; font-size: 1.5rem; text-align: center;">
+            </div>
+        <button id="match-finish-btn" class="hidden">次へ</button>
+    </section>
+
+    <script src="main.js"></script>
+</body>
+</html>
