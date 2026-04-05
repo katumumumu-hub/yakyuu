@@ -1,0 +1,100 @@
+{
+  "trainings": [
+    {
+      "id": "T001",
+      "name": "筋力トレーニング",
+      "description": "ベンチプレスで上半身を鍛える。パワーアップに最適。",
+      "category": "muscle",
+      "gains": {
+        "power": 12,
+        "technique": 0,
+        "agility": -2,
+        "mental": 2
+      },
+      "hidden_gains": {
+        "batting_power": 5,
+        "shoulder_strength": 3,
+        "fatigue_resistance": -1
+      },
+      "energy_cost": 25,
+      "fail_rate_base": 5,
+      "restrictions": {
+        "required_status": [],
+        "forbidden_status": ["S002", "S105"] 
+      },
+      "status_triggers": [
+        { "status_id": "S001", "threshold": "hidden.muscle_strain > 80", "probability": 0.1 }
+      ]
+    },
+    {
+      "id": "T002",
+      "name": "投げ込み",
+      "description": "投球フォームを固める。スタミナとコントロールが向上。",
+      "category": "pitching",
+      "gains": {
+        "power": 2,
+        "technique": 8,
+        "agility": 0,
+        "mental": 5
+      },
+      "hidden_gains": {
+        "control": 6,
+        "stamina_limit": 4,
+        "breaking_ball_skill": 3
+      },
+      "energy_cost": 30,
+      "fail_rate_base": 8,
+      "restrictions": {
+        "required_status": [],
+        "forbidden_status": ["S003", "S004"] 
+      },
+      "status_triggers": [
+        { "status_id": "S003", "threshold": "hidden.elbow_load > 70", "probability": 0.15 }
+      ]
+    },
+    {
+      "id": "T003",
+      "name": "ダッシュ",
+      "description": "短距離走を繰り返す。走力と瞬発力を高める。",
+      "category": "agility",
+      "gains": {
+        "power": 1,
+        "technique": 1,
+        "agility": 15,
+        "mental": 3
+      },
+      "hidden_gains": {
+        "base_running": 7,
+        "reaction_speed": 5,
+        "lower_body_strength": 4
+      },
+      "energy_cost": 20,
+      "fail_rate_base": 6,
+      "restrictions": {
+        "forbidden_status": ["S005"] 
+      }
+    },
+    {
+      "id": "T100",
+      "name": "休む",
+      "description": "しっかり静養して体力を回復させる。",
+      "category": "rest",
+      "gains": {
+        "energy": 50,
+        "motivation": 5
+      },
+      "hidden_gains": {
+        "stress_level": -10,
+        "recovery_speed": 2
+      },
+      "energy_cost": 0,
+      "fail_rate_base": 0,
+      "restrictions": {
+        "forbidden_status": []
+      },
+      "status_triggers": [
+        { "status_id": "S201", "condition": "random < 0.05", "note": "稀に『不眠症』が治る" }
+      ]
+    }
+  ]
+}
