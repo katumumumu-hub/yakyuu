@@ -1,0 +1,7 @@
+[
+  { "id": "img_001", "path": "assets/images/monsters/seed_red.png", "category": "monster" },
+  { "id": "img_002", "path": "assets/images/monsters/seed_blue.png", "category": "monster" },
+  { "id": "img_003", "path": "assets/images/monsters/seed_green.png", "category": "monster" },
+  { "id": "img_004", "path": "assets/images/monsters/evo_dragon.png", "category": "monster" },
+  { "id": "img_005", "path": "assets/images/monsters/evo_leviathan.png", "category": "monster" }
+]
