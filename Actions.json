@@ -1,0 +1,37 @@
+[
+  {
+    "id": "act_001",
+    "name": "ランニング",
+    "type": "training",
+    "cost": 1,
+    "effects": { "hp": -10, "str": 5, "spd": 10 }
+  },
+  {
+    "id": "act_002",
+    "name": "丸太割り",
+    "type": "training",
+    "cost": 1,
+    "effects": { "hp": -20, "str": 15, "spd": 0 }
+  },
+  {
+    "id": "act_003",
+    "name": "滝行",
+    "type": "training",
+    "cost": 1,
+    "effects": { "hp": -15, "str": 5, "spd": 5 }
+  },
+  {
+    "id": "act_004",
+    "name": "お昼寝",
+    "type": "rest",
+    "cost": 1,
+    "effects": { "hp": 40, "str": 0, "spd": 0 }
+  },
+  {
+    "id": "act_005",
+    "name": "病院で治療",
+    "type": "rest",
+    "cost": 1,
+    "effects": { "hp": 50, "str": 0, "spd": 0, "force_condition": "cond_001" }
+  }
+]
