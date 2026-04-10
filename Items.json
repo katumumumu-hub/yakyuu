@@ -1,0 +1,42 @@
+[
+  {
+    "id": "item_001",
+    "name": "パワフルプロテイン",
+    "price": 1000,
+    "description": "次のトレーニングの効果が1.5倍になる。",
+    "effect_type": "training_boost",
+    "effect_value": 1.5
+  },
+  {
+    "id": "item_002",
+    "name": "ふかふかクッション",
+    "price": 800,
+    "description": "休憩時の体力回復量が2倍になる。",
+    "effect_type": "rest_boost",
+    "effect_value": 2.0
+  },
+  {
+    "id": "item_003",
+    "name": "時間の砂時計",
+    "price": 2000,
+    "description": "残り行動回数を5回増やす。",
+    "effect_type": "action_increase",
+    "effect_value": 5
+  },
+  {
+    "id": "item_004",
+    "name": "栄養ドリンク",
+    "price": 500,
+    "description": "行動回数を消費せずにHPを30回復する。",
+    "effect_type": "heal_hp",
+    "effect_value": 30
+  },
+  {
+    "id": "item_005",
+    "name": "万能薬",
+    "price": 1500,
+    "description": "悪いコンディションを「ふつう」に戻す。",
+    "effect_type": "heal_condition",
+    "effect_value": "cond_001"
+  }
+]

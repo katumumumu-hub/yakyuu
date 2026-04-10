@@ -1,0 +1,32 @@
+{
+  "player_status": {
+    "money": 4500
+  },
+  "inventory": [
+    { "item_id": "item_001", "quantity": 2 },
+    { "item_id": "item_005", "quantity": 1 }
+  ],
+  "monster_book": [
+    "mon_001",
+    "mon_002",
+    "mon_004"
+  ],
+  "active_breeding": {
+    "is_breeding": true,
+    "current_seed_id": "mon_002",
+    "remaining_actions": 45,
+    "current_condition_id": "cond_002",
+    "current_parameters": {
+      "hp": 210,
+      "str": 80,
+      "spd": 40
+    },
+    "active_buffs": [
+      { "item_id": "item_002", "turns_left": 1 }
+    ],
+    "history": {
+      "total_injuries": 0,
+      "events_triggered": ["evt_001", "evt_004"]
+    }
+  }
+}
