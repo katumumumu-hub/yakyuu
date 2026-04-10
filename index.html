@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>モンスター育成シミュレーター</title>
     <style>
+        /* CSSは前回と全く同じです */
         :root {
             --primary: #2c3e50;
             --secondary: #34495e;
@@ -45,7 +46,6 @@
         .panel {
             padding: 20px;
         }
-        /* 左パネル：モンスターとステータス */
         .monster-display {
             text-align: center;
             border-bottom: 2px solid var(--bg);
@@ -54,13 +54,13 @@
         }
         .monster-image {
             margin: 10px 0;
-            background: transparent; /* 背景を透明に変更 */
+            background: transparent;
             border-radius: 50%;
             width: 150px;
             height: 150px;
             display: inline-block;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden; /* 画像が枠からはみ出ないように設定 */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -76,7 +76,6 @@
             justify-content: space-between;
             margin-bottom: 5px;
         }
-        /* 右パネル：行動とアイテム */
         .actions-panel {
             border-left: 2px solid var(--bg);
         }
@@ -98,20 +97,10 @@
             font-size: 16px;
             transition: background 0.2s;
         }
-        .btn:hover {
-            background: var(--secondary);
-        }
-        .btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .btn-item {
-            background: #27ae60;
-        }
-        .btn-item:hover {
-            background: #2ecc71;
-        }
-        /* 下部パネル：ログ */
+        .btn:hover { background: var(--secondary); }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .btn-item { background: #27ae60; }
+        .btn-item:hover { background: #2ecc71; }
         .log-panel {
             grid-column: 1 / -1;
             background: #333;
@@ -127,11 +116,25 @@
             border-bottom: 1px dotted #555;
             padding-bottom: 2px;
         }
+        /* ロード画面用 */
+        #loading-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
-<div class="game-container">
+<div id="loading-screen">データを読み込み中...</div>
+
+<div class="game-container" id="game-ui" style="display: none;">
     <div class="header">
         <h2 style="margin:0;">モンスター育成ファクトリー</h2>
         <div>所持金: <span id="ui-money">0</span> G | 残り行動: <strong id="ui-turns" style="color:var(--accent); font-size: 1.2em;">0</strong> 回</div>
@@ -139,9 +142,9 @@
 
     <div class="panel">
         <div class="monster-display">
-            <h3 id="ui-monster-name">モンスター名</h3>
+            <h3 id="ui-monster-name">-</h3>
             <div class="monster-image" id="ui-monster-img"></div>
-            <div id="ui-condition" style="font-weight: bold; color: var(--accent); margin-bottom: 10px;">コンディション: ふつう</div>
+            <div id="ui-condition" style="font-weight: bold; color: var(--accent); margin-bottom: 10px;">-</div>
         </div>
         <div class="status-box">
             <div class="status-row"><span>HP:</span> <span id="ui-hp">0</span></div>
@@ -158,73 +161,74 @@
         <div id="inventory-container"></div>
     </div>
 
-    <div class="log-panel" id="log-container">
-        </div>
+    <div class="log-panel" id="log-container"></div>
 </div>
 
 <script>
-    // --- マスターデータ (JSON) ---
-    const DB = {
-        Images: {
-            "img_001": "assets/images/monsters/seed_red.png",
-            "img_002": "assets/images/monsters/seed_blue.png",
-            "img_003": "assets/images/monsters/seed_green.png",
-            "img_004": "assets/images/monsters/evo_dragon.png",
-            "img_005": "assets/images/monsters/evo_leviathan.png"
-        },
-        Monsters: [
-            { id: "mon_001", name: "アカタネ", type: "seed", image_id: "img_001" },
-            { id: "mon_002", name: "アオタネ", type: "seed", image_id: "img_002" },
-            { id: "mon_003", name: "ミドリタネ", type: "seed", image_id: "img_003" },
-            { id: "mon_004", name: "フレイムドラゴン", type: "evolved", image_id: "img_004", evolution_conditions: { base_seed_ids: ["mon_001", "mon_002", "mon_003"], min_str: 200, min_spd: 50 } },
-            { id: "mon_005", name: "アクアリヴァイアサン", type: "evolved", image_id: "img_005", evolution_conditions: { base_seed_ids: ["mon_002", "mon_003"], min_hp: 300, min_str: 100 } }
-        ],
-        Items: [
-            { id: "item_001", name: "パワフルプロテイン", effect_type: "training_boost", effect_value: 1.5 },
-            { id: "item_002", name: "ふかふかクッション", effect_type: "rest_boost", effect_value: 2.0 },
-            { id: "item_003", name: "時間の砂時計", effect_type: "action_increase", effect_value: 5 },
-            { id: "item_004", name: "栄養ドリンク", effect_type: "heal_hp", effect_value: 30 },
-            { id: "item_005", name: "万能薬", effect_type: "heal_condition", effect_value: "cond_001" }
-        ],
-        Actions: [
-            { id: "act_001", name: "ランニング", type: "training", effects: { hp: -10, str: 5, spd: 10 } },
-            { id: "act_002", name: "丸太割り", type: "training", effects: { hp: -20, str: 15, spd: 0 } },
-            { id: "act_003", name: "滝行", type: "training", effects: { hp: -15, str: 5, spd: 5 } },
-            { id: "act_004", name: "お昼寝", type: "rest", effects: { hp: 40, str: 0, spd: 0 } },
-            { id: "act_005", name: "病院で治療", type: "rest", effects: { hp: 50, str: 0, spd: 0, force_condition: "cond_001" } }
-        ],
-        Conditions: {
-            "cond_001": { name: "ふつう", mult: { gain: 1.0, hp_loss: 1.0 } },
-            "cond_002": { name: "好調", mult: { gain: 1.2, hp_loss: 0.9 } },
-            "cond_003": { name: "絶好調", mult: { gain: 1.5, hp_loss: 0.8 } },
-            "cond_004": { name: "疲労", mult: { gain: 0.8, hp_loss: 1.5 } },
-            "cond_005": { name: "ケガ", mult: { gain: 0.1, hp_loss: 2.0 } }
-        },
-        Events: [
-            { id: "evt_001", name: "大成功！", trigger: "training", prob: 0.10, effects: { hp: 0, str: 10, spd: 10 } },
-            { id: "evt_002", name: "足をつまづいた", trigger: "training", prob: 0.05, force_condition: "cond_004" },
-            { id: "evt_003", name: "迷子の商人", trigger: "rest", prob: 0.10, reward: "item_001" },
-            { id: "evt_004", name: "ぐっすり熟睡", trigger: "rest", prob: 0.15, force_condition: "cond_003" },
-            { id: "evt_005", name: "突然のひらめき", trigger: "training", prob: 0.03, effects: { hp: 20, str: 20, spd: 20 } }
-        ]
-    };
+    // データを格納するグローバル変数
+    let DB = {};
+    let UserData = {};
 
-    // --- ユーザーデータ (State) ---
-    let UserData = {
-        player_status: { money: 4500 },
-        inventory: [
-            { item_id: "item_001", quantity: 2 },
-            { item_id: "item_005", quantity: 1 }
-        ],
-        active_breeding: {
-            is_breeding: true,
-            current_seed_id: "mon_002", // アオタネ
-            remaining_actions: 45,
-            current_condition_id: "cond_002",
-            current_parameters: { hp: 210, str: 80, spd: 40 },
-            active_buffs: []
+    // 複数のJSONファイルを非同期で一括読み込みする関数
+    async function loadGameData() {
+        try {
+            // fetchを使って外部ファイルを読み込む
+            const [imagesRes, monstersRes, itemsRes, actionsRes, conditionsRes, eventsRes, userDataRes] = await Promise.all([
+                fetch('Images.json'),
+                fetch('Monsters.json'),
+                fetch('Items.json'),
+                fetch('Actions.json'),
+                fetch('Conditions.json'),
+                fetch('Events.json'),
+                fetch('UserData.json')
+            ]);
+
+            // JSONとしてパース
+            const rawImages = await imagesRes.json();
+            const rawConditions = await conditionsRes.json();
+            const rawEvents = await eventsRes.json();
+            
+            DB.Monsters = await monstersRes.json();
+            DB.Items = await itemsRes.json();
+            DB.Actions = await actionsRes.json();
+            UserData = await userDataRes.json();
+
+            // プログラムで扱いやすいように配列データを変換
+            DB.Images = {};
+            rawImages.forEach(img => { DB.Images[img.id] = img.path; });
+
+            DB.Conditions = {};
+            rawConditions.forEach(cond => {
+                DB.Conditions[cond.id] = {
+                    name: cond.name,
+                    mult: {
+                        gain: cond.effect_multiplier ? cond.effect_multiplier.training_gain : 1.0,
+                        hp_loss: cond.effect_multiplier ? cond.effect_multiplier.hp_loss : 1.0
+                    }
+                };
+            });
+
+            DB.Events = rawEvents.map(e => ({
+                id: e.id,
+                name: e.name,
+                trigger: e.trigger,
+                prob: e.probability,
+                effects: e.effects || {},
+                force_condition: e.force_condition,
+                reward: e.rewards ? e.rewards.item_id : null,
+                description: e.description
+            }));
+
+            // ロード完了後、ゲームUIを表示して初期化
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'grid';
+            initGame();
+
+        } catch (error) {
+            console.error("データの読み込みに失敗しました:", error);
+            document.getElementById('loading-screen').innerText = "エラー：データの読み込みに失敗しました。";
         }
-    };
+    }
 
     // --- ロジック ---
     const UI = {
@@ -233,27 +237,20 @@
             const breed = UserData.active_breeding;
             const params = breed.current_parameters;
             
-            // ヘッダー
             document.getElementById('ui-money').innerText = UserData.player_status.money;
             document.getElementById('ui-turns').innerText = breed.remaining_actions;
 
-            // モンスター情報
             const monster = DB.Monsters.find(m => m.id === breed.current_seed_id);
             document.getElementById('ui-monster-name').innerText = monster.name;
-            
-            // 【変更点】画像パスを使用してimgタグを生成
             document.getElementById('ui-monster-img').innerHTML = `<img src="${DB.Images[monster.image_id]}" alt="${monster.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
             
-            // コンディション
             const cond = DB.Conditions[breed.current_condition_id];
             document.getElementById('ui-condition').innerText = `コンディション: ${cond.name}`;
 
-            // ステータス
             document.getElementById('ui-hp').innerText = Math.floor(params.hp);
             document.getElementById('ui-str').innerText = Math.floor(params.str);
             document.getElementById('ui-spd').innerText = Math.floor(params.spd);
 
-            // インベントリ描画
             const invContainer = document.getElementById('inventory-container');
             invContainer.innerHTML = '';
             UserData.inventory.forEach(inv => {
@@ -267,7 +264,6 @@
                 }
             });
 
-            // 行動不能判定（育成終了時）
             const isFinished = !breed.is_breeding;
             document.querySelectorAll('#actions-container .btn').forEach(btn => {
                 btn.disabled = isFinished;
@@ -290,55 +286,47 @@
         
         UI.addLog(`行動: 【${action.name}】を実行しました。`);
 
-        // ステータス計算
-        let hpChange = action.effects.hp;
+        let hpChange = action.effects.hp || 0;
         let strChange = action.effects.str || 0;
         let spdChange = action.effects.spd || 0;
 
-        // コンディション補正
         if (hpChange < 0) hpChange *= cond.mult.hp_loss;
         if (strChange > 0) strChange *= cond.mult.gain;
         if (spdChange > 0) spdChange *= cond.mult.gain;
 
-        // アイテムバフ補正
         let activeBuff = breed.active_buffs.find(b => b.turns_left > 0);
         if (activeBuff) {
             const buffItem = DB.Items.find(i => i.id === activeBuff.item_id);
             if (action.type === 'training' && buffItem.effect_type === 'training_boost') {
                 strChange *= buffItem.effect_value;
                 spdChange *= buffItem.effect_value;
-                UI.addLog(`アイテム効果でトレーニング成果が${buffItem.effect_value}倍！`);
+                UI.addLog(`アイテム効果で成果がアップ！`);
             } else if (action.type === 'rest' && buffItem.effect_type === 'rest_boost') {
                 hpChange *= buffItem.effect_value;
-                UI.addLog(`アイテム効果で回復量が${buffItem.effect_value}倍！`);
+                UI.addLog(`アイテム効果で回復量がアップ！`);
             }
             activeBuff.turns_left--;
             if (activeBuff.turns_left <= 0) breed.active_buffs = [];
         }
 
-        // 適用
         breed.current_parameters.hp = Math.max(0, breed.current_parameters.hp + hpChange);
         breed.current_parameters.str += strChange;
         breed.current_parameters.spd += spdChange;
 
-        // 強制コンディション変更（病院など）
         if (action.effects.force_condition) {
             breed.current_condition_id = action.effects.force_condition;
-            UI.addLog("コンディションが「ふつう」に戻った！");
+            UI.addLog("コンディションが変化した！");
         }
 
-        // ランダムイベント判定
         DB.Events.forEach(evt => {
             if (evt.trigger === action.type && Math.random() < evt.prob) {
-                UI.addLog(`✨ イベント発生: ${evt.name} - ${evt.description || ''}`);
+                UI.addLog(`✨ イベント発生: ${evt.name}`);
                 if (evt.effects) {
                     breed.current_parameters.hp += (evt.effects.hp || 0);
                     breed.current_parameters.str += (evt.effects.str || 0);
                     breed.current_parameters.spd += (evt.effects.spd || 0);
                 }
-                if (evt.force_condition) {
-                    breed.current_condition_id = evt.force_condition;
-                }
+                if (evt.force_condition) breed.current_condition_id = evt.force_condition;
                 if (evt.reward) {
                     const itemData = DB.Items.find(i => i.id === evt.reward);
                     let invItem = UserData.inventory.find(i => i.item_id === evt.reward);
@@ -349,18 +337,13 @@
             }
         });
 
-        // ターン経過
         breed.remaining_actions--;
         
-        // 進化判定
         if (breed.remaining_actions <= 0) {
             checkEvolution();
-        } else {
-            // HP0の場合はケガになるなどの隠しロジック
-            if (breed.current_parameters.hp <= 0 && breed.current_condition_id !== "cond_005") {
-                breed.current_condition_id = "cond_005";
-                UI.addLog("⚠️ HPが0になった！「ケガ」をしてしまった...");
-            }
+        } else if (breed.current_parameters.hp <= 0 && breed.current_condition_id !== "cond_005") {
+            breed.current_condition_id = "cond_005";
+            UI.addLog("⚠️ HPが0になった！「ケガ」をしてしまった...");
         }
 
         UI.update();
@@ -400,19 +383,13 @@
         
         UI.addLog("🌟 育成期間が終了しました。進化の時です...");
 
-        // 進化先を探索
-        let evolvedId = breed.current_seed_id; // デフォルトはそのまま
+        let evolvedId = breed.current_seed_id;
         
-        // 進化モンスターの条件をチェック（IDが後ろのものを優先）
         for (let i = DB.Monsters.length - 1; i >= 0; i--) {
             const mon = DB.Monsters[i];
             if (mon.type === 'evolved' && mon.evolution_conditions.base_seed_ids.includes(breed.current_seed_id)) {
                 const cond = mon.evolution_conditions;
-                const reqHp = cond.min_hp || 0;
-                const reqStr = cond.min_str || 0;
-                const reqSpd = cond.min_spd || 0;
-
-                if (params.hp >= reqHp && params.str >= reqStr && params.spd >= reqSpd) {
+                if (params.hp >= (cond.min_hp || 0) && params.str >= (cond.min_str || 0) && params.spd >= (cond.min_spd || 0)) {
                     evolvedId = mon.id;
                     break;
                 }
@@ -421,7 +398,7 @@
 
         const newMonster = DB.Monsters.find(m => m.id === evolvedId);
         breed.current_seed_id = evolvedId;
-        breed.is_breeding = false; // 育成終了
+        breed.is_breeding = false;
 
         if (newMonster.type === 'evolved') {
             UI.addLog(`🎉 おめでとう！【${newMonster.name}】に進化しました！`);
@@ -430,9 +407,7 @@
         }
     }
 
-    // --- 初期化 ---
-    window.onload = () => {
-        // アクションボタンの生成
+    function initGame() {
         const actContainer = document.getElementById('actions-container');
         DB.Actions.forEach(act => {
             const btn = document.createElement('button');
@@ -444,7 +419,10 @@
 
         UI.addLog("ゲームを開始しました。行動を選択してください。");
         UI.update();
-    };
+    }
+
+    // ページ読み込み時にデータフェッチを開始
+    window.onload = loadGameData;
 </script>
 
 </body>
