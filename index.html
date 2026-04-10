@@ -2,58 +2,450 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>野球育成サクセス</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css"> <style>
-        body { font-family: sans-serif; background: #f0f0f0; margin: 0; padding: 10px; }
-        .hidden { display: none !important; }
-        #status-bar { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .gauge-container { width: 100%; background: #ddd; height: 10px; border-radius: 5px; margin: 5px 0; }
-        #energy-gauge { height: 100%; background: #4caf50; border-radius: 5px; transition: width 0.3s; }
-        .screen { background: #fff; padding: 20px; border-radius: 8px; min-height: 400px; }
-        .training-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { width: 100%; padding: 12px; margin: 5px 0; cursor: pointer; }
-        #event-dialog { border: 3px solid #333; padding: 15px; background: #fffbe6; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>モンスター育成シミュレーター</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #e74c3c;
+            --bg: #ecf0f1;
+            --text: #2c3e50;
+            --white: #ffffff;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto 1fr;
+        }
+        .header {
+            grid-column: 1 / -1;
+            background: var(--primary);
+            color: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel {
+            padding: 20px;
+        }
+        /* 左パネル：モンスターとステータス */
+        .monster-display {
+            text-align: center;
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .monster-image {
+            margin: 10px 0;
+            background: transparent; /* 背景を透明に変更 */
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            display: inline-block;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden; /* 画像が枠からはみ出ないように設定 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .status-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        /* 右パネル：行動とアイテム */
+        .actions-panel {
+            border-left: 2px solid var(--bg);
+        }
+        h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: var(--secondary);
+        }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .btn-item {
+            background: #27ae60;
+        }
+        .btn-item:hover {
+            background: #2ecc71;
+        }
+        /* 下部パネル：ログ */
+        .log-panel {
+            grid-column: 1 / -1;
+            background: #333;
+            color: #00ff00;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            border-top: 4px solid var(--primary);
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px dotted #555;
+            padding-bottom: 2px;
+        }
     </style>
 </head>
 <body>
 
-    <header id="status-bar" class="hidden">
-        <div id="calendar-display">1年 4月 1週</div>
-        <div>
-            体力: <span id="energy-text">100/100</span>
-            <div class="gauge-container"><div id="energy-gauge"></div></div>
+<div class="game-container">
+    <div class="header">
+        <h2 style="margin:0;">モンスター育成ファクトリー</h2>
+        <div>所持金: <span id="ui-money">0</span> G | 残り行動: <strong id="ui-turns" style="color:var(--accent); font-size: 1.2em;">0</strong> 回</div>
+    </div>
+
+    <div class="panel">
+        <div class="monster-display">
+            <h3 id="ui-monster-name">モンスター名</h3>
+            <div class="monster-image" id="ui-monster-img"></div>
+            <div id="ui-condition" style="font-weight: bold; color: var(--accent); margin-bottom: 10px;">コンディション: ふつう</div>
         </div>
-        <div id="param-display">
-            筋力: <span id="p-muscle">0</span> | 技術: <span id="p-tech">0</span> | 素早さ: <span id="p-speed">0</span>
+        <div class="status-box">
+            <div class="status-row"><span>HP:</span> <span id="ui-hp">0</span></div>
+            <div class="status-row"><span>筋力 (STR):</span> <span id="ui-str">0</span></div>
+            <div class="status-row"><span>素早さ (SPD):</span> <span id="ui-spd">0</span></div>
         </div>
-    </header>
+    </div>
 
-    <section id="screen-start" class="screen">
-        <h2>高校選択</h2>
-        <div id="school-list">読み込み中...</div>
-    </section>
+    <div class="panel actions-panel">
+        <h3>行動 (Actions)</h3>
+        <div id="actions-container"></div>
+        
+        <h3 style="margin-top: 20px;">持ち物 (Inventory)</h3>
+        <div id="inventory-container"></div>
+    </div>
 
-    <section id="screen-main" class="screen hidden">
-        <h3>今週の行動を選択</h3>
-        <div class="training-grid" id="training-list"></div>
-    </section>
-
-    <section id="screen-event" class="screen hidden">
-        <div id="event-dialog">
-            <h4 id="event-title">イベント発生</h4>
-            <p id="event-text"></p>
-            <div id="event-choices"></div>
+    <div class="log-panel" id="log-container">
         </div>
-    </section>
+</div>
 
-    <section id="screen-match" class="screen hidden">
-        <h2>試合中...</h2>
-        <div id="scoreboard" style="font-family: monospace; font-size: 1.5rem; text-align: center;">
-            </div>
-        <button id="match-finish-btn" class="hidden">次へ</button>
-    </section>
+<script>
+    // --- マスターデータ (JSON) ---
+    const DB = {
+        Images: {
+            "img_001": "assets/images/monsters/seed_red.png",
+            "img_002": "assets/images/monsters/seed_blue.png",
+            "img_003": "assets/images/monsters/seed_green.png",
+            "img_004": "assets/images/monsters/evo_dragon.png",
+            "img_005": "assets/images/monsters/evo_leviathan.png"
+        },
+        Monsters: [
+            { id: "mon_001", name: "アカタネ", type: "seed", image_id: "img_001" },
+            { id: "mon_002", name: "アオタネ", type: "seed", image_id: "img_002" },
+            { id: "mon_003", name: "ミドリタネ", type: "seed", image_id: "img_003" },
+            { id: "mon_004", name: "フレイムドラゴン", type: "evolved", image_id: "img_004", evolution_conditions: { base_seed_ids: ["mon_001", "mon_002", "mon_003"], min_str: 200, min_spd: 50 } },
+            { id: "mon_005", name: "アクアリヴァイアサン", type: "evolved", image_id: "img_005", evolution_conditions: { base_seed_ids: ["mon_002", "mon_003"], min_hp: 300, min_str: 100 } }
+        ],
+        Items: [
+            { id: "item_001", name: "パワフルプロテイン", effect_type: "training_boost", effect_value: 1.5 },
+            { id: "item_002", name: "ふかふかクッション", effect_type: "rest_boost", effect_value: 2.0 },
+            { id: "item_003", name: "時間の砂時計", effect_type: "action_increase", effect_value: 5 },
+            { id: "item_004", name: "栄養ドリンク", effect_type: "heal_hp", effect_value: 30 },
+            { id: "item_005", name: "万能薬", effect_type: "heal_condition", effect_value: "cond_001" }
+        ],
+        Actions: [
+            { id: "act_001", name: "ランニング", type: "training", effects: { hp: -10, str: 5, spd: 10 } },
+            { id: "act_002", name: "丸太割り", type: "training", effects: { hp: -20, str: 15, spd: 0 } },
+            { id: "act_003", name: "滝行", type: "training", effects: { hp: -15, str: 5, spd: 5 } },
+            { id: "act_004", name: "お昼寝", type: "rest", effects: { hp: 40, str: 0, spd: 0 } },
+            { id: "act_005", name: "病院で治療", type: "rest", effects: { hp: 50, str: 0, spd: 0, force_condition: "cond_001" } }
+        ],
+        Conditions: {
+            "cond_001": { name: "ふつう", mult: { gain: 1.0, hp_loss: 1.0 } },
+            "cond_002": { name: "好調", mult: { gain: 1.2, hp_loss: 0.9 } },
+            "cond_003": { name: "絶好調", mult: { gain: 1.5, hp_loss: 0.8 } },
+            "cond_004": { name: "疲労", mult: { gain: 0.8, hp_loss: 1.5 } },
+            "cond_005": { name: "ケガ", mult: { gain: 0.1, hp_loss: 2.0 } }
+        },
+        Events: [
+            { id: "evt_001", name: "大成功！", trigger: "training", prob: 0.10, effects: { hp: 0, str: 10, spd: 10 } },
+            { id: "evt_002", name: "足をつまづいた", trigger: "training", prob: 0.05, force_condition: "cond_004" },
+            { id: "evt_003", name: "迷子の商人", trigger: "rest", prob: 0.10, reward: "item_001" },
+            { id: "evt_004", name: "ぐっすり熟睡", trigger: "rest", prob: 0.15, force_condition: "cond_003" },
+            { id: "evt_005", name: "突然のひらめき", trigger: "training", prob: 0.03, effects: { hp: 20, str: 20, spd: 20 } }
+        ]
+    };
 
-    <script src="main.js"></script>
+    // --- ユーザーデータ (State) ---
+    let UserData = {
+        player_status: { money: 4500 },
+        inventory: [
+            { item_id: "item_001", quantity: 2 },
+            { item_id: "item_005", quantity: 1 }
+        ],
+        active_breeding: {
+            is_breeding: true,
+            current_seed_id: "mon_002", // アオタネ
+            remaining_actions: 45,
+            current_condition_id: "cond_002",
+            current_parameters: { hp: 210, str: 80, spd: 40 },
+            active_buffs: []
+        }
+    };
+
+    // --- ロジック ---
+    const UI = {
+        log: document.getElementById('log-container'),
+        update: function() {
+            const breed = UserData.active_breeding;
+            const params = breed.current_parameters;
+            
+            // ヘッダー
+            document.getElementById('ui-money').innerText = UserData.player_status.money;
+            document.getElementById('ui-turns').innerText = breed.remaining_actions;
+
+            // モンスター情報
+            const monster = DB.Monsters.find(m => m.id === breed.current_seed_id);
+            document.getElementById('ui-monster-name').innerText = monster.name;
+            
+            // 【変更点】画像パスを使用してimgタグを生成
+            document.getElementById('ui-monster-img').innerHTML = `<img src="${DB.Images[monster.image_id]}" alt="${monster.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+            
+            // コンディション
+            const cond = DB.Conditions[breed.current_condition_id];
+            document.getElementById('ui-condition').innerText = `コンディション: ${cond.name}`;
+
+            // ステータス
+            document.getElementById('ui-hp').innerText = Math.floor(params.hp);
+            document.getElementById('ui-str').innerText = Math.floor(params.str);
+            document.getElementById('ui-spd').innerText = Math.floor(params.spd);
+
+            // インベントリ描画
+            const invContainer = document.getElementById('inventory-container');
+            invContainer.innerHTML = '';
+            UserData.inventory.forEach(inv => {
+                if (inv.quantity > 0) {
+                    const itemData = DB.Items.find(i => i.id === inv.item_id);
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-item';
+                    btn.innerText = `${itemData.name} (所持: ${inv.quantity})`;
+                    btn.onclick = () => useItem(inv.item_id);
+                    invContainer.appendChild(btn);
+                }
+            });
+
+            // 行動不能判定（育成終了時）
+            const isFinished = !breed.is_breeding;
+            document.querySelectorAll('#actions-container .btn').forEach(btn => {
+                btn.disabled = isFinished;
+            });
+        },
+        addLog: function(msg) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `> ${msg}`;
+            this.log.prepend(entry);
+        }
+    };
+
+    function performAction(actionId) {
+        const breed = UserData.active_breeding;
+        if (!breed.is_breeding || breed.remaining_actions <= 0) return;
+
+        const action = DB.Actions.find(a => a.id === actionId);
+        const cond = DB.Conditions[breed.current_condition_id];
+        
+        UI.addLog(`行動: 【${action.name}】を実行しました。`);
+
+        // ステータス計算
+        let hpChange = action.effects.hp;
+        let strChange = action.effects.str || 0;
+        let spdChange = action.effects.spd || 0;
+
+        // コンディション補正
+        if (hpChange < 0) hpChange *= cond.mult.hp_loss;
+        if (strChange > 0) strChange *= cond.mult.gain;
+        if (spdChange > 0) spdChange *= cond.mult.gain;
+
+        // アイテムバフ補正
+        let activeBuff = breed.active_buffs.find(b => b.turns_left > 0);
+        if (activeBuff) {
+            const buffItem = DB.Items.find(i => i.id === activeBuff.item_id);
+            if (action.type === 'training' && buffItem.effect_type === 'training_boost') {
+                strChange *= buffItem.effect_value;
+                spdChange *= buffItem.effect_value;
+                UI.addLog(`アイテム効果でトレーニング成果が${buffItem.effect_value}倍！`);
+            } else if (action.type === 'rest' && buffItem.effect_type === 'rest_boost') {
+                hpChange *= buffItem.effect_value;
+                UI.addLog(`アイテム効果で回復量が${buffItem.effect_value}倍！`);
+            }
+            activeBuff.turns_left--;
+            if (activeBuff.turns_left <= 0) breed.active_buffs = [];
+        }
+
+        // 適用
+        breed.current_parameters.hp = Math.max(0, breed.current_parameters.hp + hpChange);
+        breed.current_parameters.str += strChange;
+        breed.current_parameters.spd += spdChange;
+
+        // 強制コンディション変更（病院など）
+        if (action.effects.force_condition) {
+            breed.current_condition_id = action.effects.force_condition;
+            UI.addLog("コンディションが「ふつう」に戻った！");
+        }
+
+        // ランダムイベント判定
+        DB.Events.forEach(evt => {
+            if (evt.trigger === action.type && Math.random() < evt.prob) {
+                UI.addLog(`✨ イベント発生: ${evt.name} - ${evt.description || ''}`);
+                if (evt.effects) {
+                    breed.current_parameters.hp += (evt.effects.hp || 0);
+                    breed.current_parameters.str += (evt.effects.str || 0);
+                    breed.current_parameters.spd += (evt.effects.spd || 0);
+                }
+                if (evt.force_condition) {
+                    breed.current_condition_id = evt.force_condition;
+                }
+                if (evt.reward) {
+                    const itemData = DB.Items.find(i => i.id === evt.reward);
+                    let invItem = UserData.inventory.find(i => i.item_id === evt.reward);
+                    if (invItem) invItem.quantity++;
+                    else UserData.inventory.push({ item_id: evt.reward, quantity: 1 });
+                    UI.addLog(`🎁 ${itemData.name} を手に入れた！`);
+                }
+            }
+        });
+
+        // ターン経過
+        breed.remaining_actions--;
+        
+        // 進化判定
+        if (breed.remaining_actions <= 0) {
+            checkEvolution();
+        } else {
+            // HP0の場合はケガになるなどの隠しロジック
+            if (breed.current_parameters.hp <= 0 && breed.current_condition_id !== "cond_005") {
+                breed.current_condition_id = "cond_005";
+                UI.addLog("⚠️ HPが0になった！「ケガ」をしてしまった...");
+            }
+        }
+
+        UI.update();
+    }
+
+    function useItem(itemId) {
+        const breed = UserData.active_breeding;
+        let invItem = UserData.inventory.find(i => i.item_id === itemId);
+        if (!invItem || invItem.quantity <= 0) return;
+
+        const item = DB.Items.find(i => i.id === itemId);
+        invItem.quantity--;
+        
+        UI.addLog(`💊 アイテム使用: 【${item.name}】`);
+
+        switch (item.effect_type) {
+            case "training_boost":
+            case "rest_boost":
+                breed.active_buffs = [{ item_id: itemId, turns_left: 1 }];
+                break;
+            case "action_increase":
+                breed.remaining_actions += item.effect_value;
+                break;
+            case "heal_hp":
+                breed.current_parameters.hp += item.effect_value;
+                break;
+            case "heal_condition":
+                breed.current_condition_id = item.effect_value;
+                break;
+        }
+        UI.update();
+    }
+
+    function checkEvolution() {
+        const breed = UserData.active_breeding;
+        const params = breed.current_parameters;
+        
+        UI.addLog("🌟 育成期間が終了しました。進化の時です...");
+
+        // 進化先を探索
+        let evolvedId = breed.current_seed_id; // デフォルトはそのまま
+        
+        // 進化モンスターの条件をチェック（IDが後ろのものを優先）
+        for (let i = DB.Monsters.length - 1; i >= 0; i--) {
+            const mon = DB.Monsters[i];
+            if (mon.type === 'evolved' && mon.evolution_conditions.base_seed_ids.includes(breed.current_seed_id)) {
+                const cond = mon.evolution_conditions;
+                const reqHp = cond.min_hp || 0;
+                const reqStr = cond.min_str || 0;
+                const reqSpd = cond.min_spd || 0;
+
+                if (params.hp >= reqHp && params.str >= reqStr && params.spd >= reqSpd) {
+                    evolvedId = mon.id;
+                    break;
+                }
+            }
+        }
+
+        const newMonster = DB.Monsters.find(m => m.id === evolvedId);
+        breed.current_seed_id = evolvedId;
+        breed.is_breeding = false; // 育成終了
+
+        if (newMonster.type === 'evolved') {
+            UI.addLog(`🎉 おめでとう！【${newMonster.name}】に進化しました！`);
+        } else {
+            UI.addLog(`進化条件を満たせませんでした…。そのままの姿で育成を終えました。`);
+        }
+    }
+
+    // --- 初期化 ---
+    window.onload = () => {
+        // アクションボタンの生成
+        const actContainer = document.getElementById('actions-container');
+        DB.Actions.forEach(act => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.innerText = act.name;
+            btn.onclick = () => performAction(act.id);
+            actContainer.appendChild(btn);
+        });
+
+        UI.addLog("ゲームを開始しました。行動を選択してください。");
+        UI.update();
+    };
+</script>
+
 </body>
 </html>
