@@ -1,50 +1,24 @@
 [
   {
-    "id": "mon_001",
-    "name": "アカタネ",
-    "type": "seed",
-    "price": 500,
-    "image_id": "img_001",
-    "description": "熱を帯びた赤いタネ。筋力が伸びやすい。"
+    "id": "mon_001", "name": "アカタネ", "type": "seed", "price": 500, "image_id": "img_001",
+    "description": "熱を帯びた赤いタネ。攻撃が伸びやすい。"
   },
   {
-    "id": "mon_002",
-    "name": "アオタネ",
-    "type": "seed",
-    "price": 500,
-    "image_id": "img_002",
-    "description": "冷たい青いタネ。体力が伸びやすい。"
+    "id": "mon_002", "name": "アオタネ", "type": "seed", "price": 500, "image_id": "img_002",
+    "description": "冷たい青いタネ。魔法が伸びやすい。"
   },
   {
-    "id": "mon_003",
-    "name": "ミドリタネ",
-    "type": "seed",
-    "price": 500,
-    "image_id": "img_003",
-    "description": "生命力あふれる緑のタネ。素早さが伸びやすい。"
+    "id": "mon_003", "name": "ミドリタネ", "type": "seed", "price": 500, "image_id": "img_003",
+    "description": "生命力あふれる緑のタネ。俊敏が伸びやすい。"
   },
   {
-    "id": "mon_004",
-    "name": "フレイムドラゴン",
-    "type": "evolved",
-    "image_id": "img_004",
+    "id": "mon_004", "name": "フレイムドラゴン", "type": "evolved", "image_id": "img_004",
     "description": "灼熱の炎を操るドラゴン。",
-    "evolution_conditions": {
-      "base_seed_ids": ["mon_001"],
-      "min_str": 200,
-      "min_spd": 50
-    }
+    "evolution_conditions": { "base_seed_ids": ["mon_001", "mon_002", "mon_003"], "min_atk": 150, "min_def": 50 }
   },
   {
-    "id": "mon_005",
-    "name": "アクアリヴァイアサン",
-    "type": "evolved",
-    "image_id": "img_005",
+    "id": "mon_005", "name": "アクアリヴァイアサン", "type": "evolved", "image_id": "img_005",
     "description": "大海を支配する巨大な海竜。",
-    "evolution_conditions": {
-      "base_seed_ids": ["mon_002"],
-      "min_hp": 300,
-      "min_str": 100
-    }
+    "evolution_conditions": { "base_seed_ids": ["mon_002", "mon_003"], "min_mag": 150, "min_hp": 200 }
   }
 ]
