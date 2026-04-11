@@ -5,195 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>モンスター育成ファクトリー</title>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #34495e;
-            --accent: #e74c3c;
-            --bg: #ecf0f1;
-            --text: #2c3e50;
-            --white: #ffffff;
-            --nav: #2980b9;
-        }
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .game-container {
-            width: 100%;
-            max-width: 800px;
-            background: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto auto;
-        }
-        .header {
-            grid-column: 1 / -1;
-            background: var(--primary);
-            color: var(--white);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        /* ナビゲーションボタン群 */
-        .nav-bar {
-            grid-column: 1 / -1;
-            display: flex;
-            background: var(--secondary);
-        }
-        .nav-btn {
-            flex: 1;
-            padding: 12px 0;
-            background: transparent;
-            color: var(--white);
-            border: none;
-            border-right: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
+        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #e74c3c; --bg: #ecf0f1; --text: #2c3e50; --white: #ffffff; --nav: #2980b9; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .game-container { width: 100%; max-width: 800px; background: var(--white); border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
+        .header { grid-column: 1 / -1; background: var(--primary); color: var(--white); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-bar { grid-column: 1 / -1; display: flex; background: var(--secondary); }
+        .nav-btn { flex: 1; padding: 12px 0; background: transparent; color: var(--white); border: none; border-right: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; }
         .nav-btn:hover { background: var(--nav); }
         .nav-btn:last-child { border-right: none; }
-
         .panel { padding: 20px; }
-        .monster-display {
-            text-align: center;
-            border-bottom: 2px solid var(--bg);
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-        .monster-image {
-            margin: 10px auto;
-            background: transparent;
-            border-radius: 50%;
-            width: 150px;
-            height: 150px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .status-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
+        .monster-display { text-align: center; border-bottom: 2px solid var(--bg); padding-bottom: 20px; margin-bottom: 20px; }
+        .monster-image { margin: 10px auto; background: transparent; border-radius: 50%; width: 150px; height: 150px; display: flex; justify-content: center; align-items: center; }
+        .status-box { background: #f8f9fa; padding: 15px; border-radius: 8px; font-weight: bold; }
+        .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 3px; }
         .actions-panel { border-left: 2px solid var(--bg); }
-        h3 {
-            margin-top: 0;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 5px;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
+        h3 { margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        .btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; background: var(--primary); color: var(--white); border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
         .btn:hover { background: var(--secondary); }
         .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-
-        /* モーダルウィンドウ (各画面) */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: var(--white);
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            border-radius: 10px;
-            padding: 20px;
-            position: relative;
-            overflow-y: auto;
-        }
-        .close-btn {
-            position: absolute;
-            top: 15px; right: 15px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px; height: 30px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--white); width: 90%; max-width: 600px; max-height: 80vh; border-radius: 10px; padding: 20px; position: relative; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
         .close-btn:hover { background: #c0392b; }
-
-        /* リスト系UI（ショップ・持ち物） */
-        .list-item {
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
-        }
+        .list-item { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
         .list-item img { width: 50px; height: 50px; object-fit: contain; margin-right: 15px; }
         .list-info { flex: 1; }
         .list-info h4 { margin: 0 0 5px 0; }
         .list-info p { margin: 0; font-size: 12px; color: #666; }
-        .buy-btn, .use-btn {
-            background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;
-        }
+        .buy-btn, .use-btn { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
         .buy-btn:hover, .use-btn:hover { background: #2ecc71; }
         .buy-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-
-        /* 図鑑グリッド */
-        .pokedex-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-        }
-        .pokedex-card {
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            background: #f9f9f9;
-        }
+        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .pokedex-card { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; background: #f9f9f9; }
         .pokedex-card img { width: 80px; height: 80px; object-fit: contain; }
         .pokedex-card.locked img { filter: brightness(0); opacity: 0.3; }
-        .pokedex-card.locked h4 { color: #999; }
-
-        /* ログ領域 */
-        .log-area {
-            background: #333; color: #0f0; padding: 10px;
-            height: 200px; overflow-y: auto; font-family: monospace; border-radius: 5px;
-        }
+        .log-area { background: #333; color: #0f0; padding: 10px; height: 200px; overflow-y: auto; font-family: monospace; border-radius: 5px; }
         .log-entry { border-bottom: 1px dotted #555; padding: 3px 0; }
-
-        #loading-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 24px; font-weight: bold; z-index: 3000;
-        }
+        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; z-index: 3000; }
     </style>
 </head>
 <body>
@@ -217,12 +65,16 @@
         <div class="monster-display" id="monster-display-area">
             <h3 id="ui-monster-name">-</h3>
             <div class="monster-image" id="ui-monster-img"></div>
-            <div id="ui-condition" style="font-weight: bold; color: var(--accent); margin-bottom: 10px;">-</div>
+            <div id="ui-condition" style="font-weight: bold; color: var(--accent); margin-bottom: 5px;">-</div>
+            <div style="font-weight: bold; color: #8e44ad; margin-bottom: 10px;">疲労度: <span id="ui-fatigue">0</span> / 100</div>
         </div>
         <div class="status-box">
             <div class="status-row"><span>HP:</span> <span id="ui-hp">0</span></div>
-            <div class="status-row"><span>筋力 (STR):</span> <span id="ui-str">0</span></div>
-            <div class="status-row"><span>素早さ (SPD):</span> <span id="ui-spd">0</span></div>
+            <div class="status-row"><span>攻撃 (ATK):</span> <span id="ui-atk">0</span></div>
+            <div class="status-row"><span>魔法 (MAG):</span> <span id="ui-mag">0</span></div>
+            <div class="status-row"><span>防御 (DEF):</span> <span id="ui-def">0</span></div>
+            <div class="status-row"><span>俊敏 (AGI):</span> <span id="ui-agi">0</span></div>
+            <div class="status-row"><span>運 (LUK):</span> <span id="ui-luk">0</span></div>
         </div>
     </div>
 
@@ -232,49 +84,17 @@
     </div>
 </div>
 
-<div id="modal-inventory" class="modal">
-    <div class="modal-content">
-        <button class="close-btn" onclick="closeModal('modal-inventory')">X</button>
-        <h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">持ち物</h2>
-        <div id="inventory-list"></div>
-    </div>
-</div>
-
-<div id="modal-shop" class="modal">
-    <div class="modal-content">
-        <button class="close-btn" onclick="closeModal('modal-shop')">X</button>
-        <h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">ショップ (所持金: <span id="shop-money">0</span> G)</h2>
-        <div id="shop-list"></div>
-    </div>
-</div>
-
-<div id="modal-pokedex" class="modal">
-    <div class="modal-content" style="max-width: 800px;">
-        <button class="close-btn" onclick="closeModal('modal-pokedex')">X</button>
-        <h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">モンスター図鑑</h2>
-        <div class="pokedex-grid" id="pokedex-grid"></div>
-    </div>
-</div>
-
-<div id="modal-settings" class="modal">
-    <div class="modal-content">
-        <button class="close-btn" onclick="closeModal('modal-settings')">X</button>
-        <h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">設定・システム</h2>
-        
-        <button class="btn" style="background:#e67e22;" onclick="saveGame()">💾 セーブする (ブラウザに保存)</button>
-        <button class="btn" style="background:#c0392b; margin-bottom: 20px;" onclick="resetSave()">🗑️ セーブデータを消去して最初から</button>
-
-        <h3>行動ログ</h3>
-        <div class="log-area" id="system-log"></div>
-    </div>
-</div>
+<div id="modal-inventory" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('modal-inventory')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">持ち物</h2><div id="inventory-list"></div></div></div>
+<div id="modal-shop" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('modal-shop')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">ショップ (所持金: <span id="shop-money">0</span> G)</h2><div id="shop-list"></div></div></div>
+<div id="modal-pokedex" class="modal"><div class="modal-content" style="max-width: 800px;"><button class="close-btn" onclick="closeModal('modal-pokedex')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">モンスター図鑑</h2><div class="pokedex-grid" id="pokedex-grid"></div></div></div>
+<div id="modal-settings" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('modal-settings')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">設定・システム</h2><button class="btn" style="background:#e67e22;" onclick="saveGame()">💾 セーブする (ブラウザに保存)</button><button class="btn" style="background:#c0392b; margin-bottom: 20px;" onclick="resetSave()">🗑️ セーブデータを消去して最初から</button><h3>行動ログ</h3><div class="log-area" id="system-log"></div></div></div>
 
 <script>
     let DB = {};
     let UserData = {};
-    let GameLogs = []; // ログを配列で管理
-
-    const SAVE_KEY = "monster_factory_save_v1";
+    let GameLogs = []; 
+    // セーブデータをv3に更新して古いエラーを防ぐ
+    const SAVE_KEY = "monster_factory_save_v3"; 
 
     async function loadGameData() {
         try {
@@ -290,14 +110,8 @@
             DB.Monsters = await monstersRes.json();
             DB.Items = await itemsRes.json();
             DB.Actions = await actionsRes.json();
-            
-            // デフォルトデータを取得
             let defaultUserData = await userDataRes.json();
 
-            // 新機能（タネのインベントリ）がJSONになかった場合のエラー回避用プロパティ追加
-            if(!defaultUserData.seed_inventory) defaultUserData.seed_inventory = [];
-
-            // ★セーブデータのロード処理★
             const savedData = localStorage.getItem(SAVE_KEY);
             if (savedData) {
                 UserData = JSON.parse(savedData);
@@ -307,7 +121,6 @@
                 addLog("初期データでゲームを開始しました。");
             }
 
-            // DB整形
             DB.Images = {};
             rawImages.forEach(img => { DB.Images[img.id] = img.path; });
 
@@ -317,7 +130,7 @@
                     name: cond.name,
                     mult: {
                         gain: cond.effect_multiplier ? cond.effect_multiplier.training_gain : 1.0,
-                        hp_loss: cond.effect_multiplier ? cond.effect_multiplier.hp_loss : 1.0
+                        fatigue_rate: cond.effect_multiplier ? cond.effect_multiplier.fatigue_rate : 1.0
                     }
                 };
             });
@@ -332,41 +145,25 @@
             initGame();
 
         } catch (error) {
-            console.error("読み込みエラー:", error);
+            console.error(error);
             document.getElementById('loading-screen').innerText = "エラー：JSONファイルの読み込みに失敗しました。";
         }
     }
 
-    // --- セーブ機能 ---
     function saveGame() {
         localStorage.setItem(SAVE_KEY, JSON.stringify(UserData));
-        alert("ゲームの進行状況をブラウザにセーブしました！");
-        addLog("手動セーブを実行しました。");
+        alert("セーブしました！"); addLog("手動セーブを実行しました。");
     }
-
     function resetSave() {
-        if(confirm("本当にセーブデータを消去しますか？（取り消せません）")) {
-            localStorage.removeItem(SAVE_KEY);
-            location.reload();
-        }
+        if(confirm("セーブデータを消去しますか？")) { localStorage.removeItem(SAVE_KEY); location.reload(); }
     }
 
-    // --- UI制御 ---
     function addLog(msg) {
         GameLogs.unshift(`> ${msg}`);
-        if(GameLogs.length > 50) GameLogs.pop(); // ログ最大50件
-        renderLog();
-    }
-
-    function renderLog() {
+        if(GameLogs.length > 50) GameLogs.pop();
         const logArea = document.getElementById('system-log');
         logArea.innerHTML = '';
-        GameLogs.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            div.innerText = msg;
-            logArea.appendChild(div);
-        });
+        GameLogs.forEach(m => { const div = document.createElement('div'); div.className = 'log-entry'; div.innerText = m; logArea.appendChild(div); });
     }
 
     function openModal(modalId) {
@@ -375,19 +172,14 @@
         if(modalId === 'modal-pokedex') renderPokedex();
         document.getElementById(modalId).style.display = 'flex';
     }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
     function updateMainUI() {
         const breed = UserData.active_breeding;
         document.getElementById('ui-money').innerText = UserData.player_status.money;
 
         const isFinished = !breed.is_breeding;
-        document.querySelectorAll('#actions-container .btn').forEach(btn => {
-            btn.disabled = isFinished;
-        });
+        document.querySelectorAll('#actions-container .btn').forEach(btn => { btn.disabled = isFinished; });
 
         if (isFinished) {
             document.getElementById('ui-monster-name').innerText = "育成終了（新しいタネを育てよう！）";
@@ -404,109 +196,63 @@
         
         const cond = DB.Conditions[breed.current_condition_id];
         document.getElementById('ui-condition').innerText = `コンディション: ${cond.name}`;
-
+        
+        document.getElementById('ui-fatigue').innerText = Math.floor(breed.fatigue);
         document.getElementById('ui-hp').innerText = Math.floor(params.hp);
-        document.getElementById('ui-str').innerText = Math.floor(params.str);
-        document.getElementById('ui-spd').innerText = Math.floor(params.spd);
+        document.getElementById('ui-atk').innerText = Math.floor(params.atk);
+        document.getElementById('ui-mag').innerText = Math.floor(params.mag);
+        document.getElementById('ui-def').innerText = Math.floor(params.def);
+        document.getElementById('ui-agi').innerText = Math.floor(params.agi);
+        // FITをLUKに変更
+        document.getElementById('ui-luk').innerText = Math.floor(params.luk); 
     }
 
-    // --- ショップ機能 ---
     function renderShop() {
         document.getElementById('shop-money').innerText = UserData.player_status.money;
         let html = '';
-        
-        // アイテム描画
         DB.Items.forEach(item => {
             const canBuy = UserData.player_status.money >= item.price;
-            html += `
-                <div class="list-item">
-                    <div class="list-info">
-                        <h4>${item.name} (${item.price} G)</h4>
-                        <p>${item.description}</p>
-                    </div>
-                    <button class="buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyItem('${item.id}', 'item', ${item.price})">購入</button>
-                </div>
-            `;
+            html += `<div class="list-item"><div class="list-info"><h4>${item.name} (${item.price} G)</h4><p>${item.description}</p></div><button class="buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyItem('${item.id}', 'item', ${item.price})">購入</button></div>`;
         });
-
-        // タネ（モンスター）描画
         DB.Monsters.filter(m => m.type === 'seed').forEach(seed => {
             const canBuy = UserData.player_status.money >= seed.price;
-            html += `
-                <div class="list-item">
-                    <img src="${DB.Images[seed.image_id]}" alt="${seed.name}">
-                    <div class="list-info">
-                        <h4>${seed.name} (${seed.price} G)</h4>
-                        <p>${seed.description}</p>
-                    </div>
-                    <button class="buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyItem('${seed.id}', 'seed', ${seed.price})">購入</button>
-                </div>
-            `;
+            html += `<div class="list-item"><img src="${DB.Images[seed.image_id]}"><div class="list-info"><h4>${seed.name} (${seed.price} G)</h4><p>${seed.description}</p></div><button class="buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyItem('${seed.id}', 'seed', ${seed.price})">購入</button></div>`;
         });
-
         document.getElementById('shop-list').innerHTML = html;
     }
 
     function buyItem(id, type, price) {
         if (UserData.player_status.money < price) return;
         UserData.player_status.money -= price;
-
         if (type === 'item') {
-            let invItem = UserData.inventory.find(i => i.item_id === id);
-            if (invItem) invItem.quantity++;
-            else UserData.inventory.push({ item_id: id, quantity: 1 });
-            addLog(`ショップで「${DB.Items.find(i=>i.id===id).name}」を購入しました。`);
+            let inv = UserData.inventory.find(i => i.item_id === id);
+            if (inv) inv.quantity++; else UserData.inventory.push({ item_id: id, quantity: 1 });
+            addLog(`ショップでアイテムを購入しました。`);
         } else if (type === 'seed') {
-            let invSeed = UserData.seed_inventory.find(s => s.monster_id === id);
-            if (invSeed) invSeed.quantity++;
-            else UserData.seed_inventory.push({ monster_id: id, quantity: 1 });
-            addLog(`ショップで「${DB.Monsters.find(m=>m.id===id).name}」を購入しました。`);
+            let inv = UserData.seed_inventory.find(s => s.monster_id === id);
+            if (inv) inv.quantity++; else UserData.seed_inventory.push({ monster_id: id, quantity: 1 });
+            addLog(`ショップでタネを購入しました。`);
         }
-
-        renderShop(); // UI再描画
-        updateMainUI();
+        renderShop(); updateMainUI();
     }
 
-    // --- 持ち物機能 ---
     function renderInventory() {
         let html = `<h3>所持アイテム</h3>`;
         UserData.inventory.forEach(inv => {
             if (inv.quantity > 0) {
                 const item = DB.Items.find(i => i.id === inv.item_id);
-                const canUse = UserData.active_breeding.is_breeding; // 育成中のみ使用可
-                html += `
-                    <div class="list-item">
-                        <div class="list-info">
-                            <h4>${item.name} (所持: ${inv.quantity})</h4>
-                            <p>${item.description}</p>
-                        </div>
-                        <button class="use-btn" ${canUse ? '' : 'disabled'} onclick="useItem('${item.id}')">使う</button>
-                    </div>
-                `;
+                const canUse = UserData.active_breeding.is_breeding;
+                html += `<div class="list-item"><div class="list-info"><h4>${item.name} (所持: ${inv.quantity})</h4><p>${item.description}</p></div><button class="use-btn" ${canUse ? '' : 'disabled'} onclick="useItem('${item.id}')">使う</button></div>`;
             }
         });
-
-        html += `<h3 style="margin-top:20px;">所持しているタネ（育成開始用）</h3>`;
-        if(!UserData.seed_inventory || UserData.seed_inventory.length === 0) {
-            html += `<p style="font-size:12px; color:#666;">タネを持っていません。ショップで購入してください。</p>`;
-        } else {
-            UserData.seed_inventory.forEach(inv => {
-                if (inv.quantity > 0) {
-                    const seed = DB.Monsters.find(m => m.id === inv.monster_id);
-                    const canBreed = !UserData.active_breeding.is_breeding; // 育成していない時のみ使用可
-                    html += `
-                        <div class="list-item">
-                            <img src="${DB.Images[seed.image_id]}" alt="${seed.name}">
-                            <div class="list-info">
-                                <h4>${seed.name} (所持: ${inv.quantity})</h4>
-                                <p>${seed.description}</p>
-                            </div>
-                            <button class="use-btn" style="background:#e67e22;" ${canBreed ? '' : 'disabled'} onclick="startBreeding('${seed.id}')">育てる</button>
-                        </div>
-                    `;
-                }
-            });
-        }
+        html += `<h3 style="margin-top:20px;">所持しているタネ</h3>`;
+        UserData.seed_inventory.forEach(inv => {
+            if (inv.quantity > 0) {
+                const seed = DB.Monsters.find(m => m.id === inv.monster_id);
+                const canBreed = !UserData.active_breeding.is_breeding;
+                html += `<div class="list-item"><img src="${DB.Images[seed.image_id]}"><div class="list-info"><h4>${seed.name} (所持: ${inv.quantity})</h4></div><button class="use-btn" style="background:#e67e22;" ${canBreed ? '' : 'disabled'} onclick="startBreeding('${seed.id}')">育てる</button></div>`;
+            }
+        });
         document.getElementById('inventory-list').innerHTML = html;
     }
 
@@ -521,70 +267,44 @@
 
         const breed = UserData.active_breeding;
         switch (item.effect_type) {
-            case "training_boost":
-            case "rest_boost":
-                breed.active_buffs = [{ item_id: itemId, turns_left: 1 }]; break;
-            case "action_increase":
-                breed.remaining_actions += item.effect_value; break;
-            case "heal_hp":
-                breed.current_parameters.hp += item.effect_value; break;
-            case "heal_condition":
-                breed.current_condition_id = item.effect_value; break;
+            case "training_boost": case "rest_boost": breed.active_buffs = [{ item_id: itemId, turns_left: 1 }]; break;
+            case "action_increase": breed.remaining_actions += item.effect_value; break;
+            case "heal_fatigue": breed.fatigue = Math.max(0, breed.fatigue - item.effect_value); break;
+            case "heal_condition": breed.current_condition_id = item.effect_value; break;
         }
-        
-        renderInventory();
-        updateMainUI();
+        renderInventory(); updateMainUI();
     }
 
-    // --- 新しい育成の開始 ---
     function startBreeding(seedId) {
         let invSeed = UserData.seed_inventory.find(s => s.monster_id === seedId);
         if (!invSeed || invSeed.quantity <= 0) return;
-        
         invSeed.quantity--;
-        const seedData = DB.Monsters.find(m => m.id === seedId);
-
-        // 育成データのリセット＆初期化
+        
         UserData.active_breeding = {
             is_breeding: true,
             current_seed_id: seedId,
-            remaining_actions: 90, // 本来はGameSettings.jsonから取得
+            remaining_actions: 90,
             current_condition_id: "cond_001",
-            current_parameters: { hp: 100, str: 10, spd: 10 },
+            fatigue: 0,
+            // lukに変更
+            current_parameters: { hp: 100, atk: 10, mag: 10, def: 10, agi: 10, luk: 10 },
             active_buffs: []
         };
-
-        // 図鑑に登録されていなければ登録
-        if(!UserData.monster_book.includes(seedId)) {
-            UserData.monster_book.push(seedId);
-        }
-
-        addLog(`🌱 新しい育成を開始しました: 【${seedData.name}】`);
-        closeModal('modal-inventory');
-        updateMainUI();
+        if(!UserData.monster_book.includes(seedId)) UserData.monster_book.push(seedId);
+        addLog(`🌱 新しい育成を開始しました！`);
+        closeModal('modal-inventory'); updateMainUI();
     }
 
-    // --- 図鑑機能 ---
     function renderPokedex() {
         let html = '';
         DB.Monsters.forEach(m => {
             const isUnlocked = UserData.monster_book.includes(m.id);
             const cardClass = isUnlocked ? 'pokedex-card' : 'pokedex-card locked';
-            const name = isUnlocked ? m.name : '???';
-            const desc = isUnlocked ? (m.description || '説明なし') : '未発見のモンスター';
-            
-            html += `
-                <div class="${cardClass}">
-                    <img src="${DB.Images[m.image_id]}" alt="${name}">
-                    <h4>${name}</h4>
-                    <p style="font-size:10px; color:#555; text-align:left;">${desc}</p>
-                </div>
-            `;
+            html += `<div class="${cardClass}"><img src="${DB.Images[m.image_id]}"><h4>${isUnlocked ? m.name : '???'}</h4></div>`;
         });
         document.getElementById('pokedex-grid').innerHTML = html;
     }
 
-    // --- ゲーム進行ロジック ---
     function performAction(actionId) {
         const breed = UserData.active_breeding;
         if (!breed.is_breeding || breed.remaining_actions <= 0) return;
@@ -594,69 +314,86 @@
         addLog(`行動: 【${action.name}】`);
 
         let hpChange = action.effects.hp || 0;
-        let strChange = action.effects.str || 0;
-        let spdChange = action.effects.spd || 0;
+        let atkChange = action.effects.atk || 0;
+        let magChange = action.effects.mag || 0;
+        let defChange = action.effects.def || 0;
+        let agiChange = action.effects.agi || 0;
+        let lukChange = action.effects.luk || 0; // fitからlukに変更
+        let fatigueChange = action.effects.fatigue || 0;
 
-        if (hpChange < 0) hpChange *= cond.mult.hp_loss;
-        if (strChange > 0) strChange *= cond.mult.gain;
-        if (spdChange > 0) spdChange *= cond.mult.gain;
+        if (fatigueChange > 0) fatigueChange *= cond.mult.fatigue_rate;
+        if (atkChange > 0) atkChange *= cond.mult.gain;
+        if (magChange > 0) magChange *= cond.mult.gain;
+        if (defChange > 0) defChange *= cond.mult.gain;
+        if (agiChange > 0) agiChange *= cond.mult.gain;
+        if (lukChange > 0) lukChange *= cond.mult.gain;
 
         let activeBuff = breed.active_buffs.find(b => b.turns_left > 0);
         if (activeBuff) {
             const buffItem = DB.Items.find(i => i.id === activeBuff.item_id);
             if (action.type === 'training' && buffItem.effect_type === 'training_boost') {
-                strChange *= buffItem.effect_value; spdChange *= buffItem.effect_value; addLog(`アイテム効果アップ！`);
+                atkChange *= buffItem.effect_value; magChange *= buffItem.effect_value;
+                defChange *= buffItem.effect_value; agiChange *= buffItem.effect_value; lukChange *= buffItem.effect_value;
             } else if (action.type === 'rest' && buffItem.effect_type === 'rest_boost') {
-                hpChange *= buffItem.effect_value; addLog(`回復量アップ！`);
+                fatigueChange *= buffItem.effect_value;
             }
             activeBuff.turns_left--;
             if (activeBuff.turns_left <= 0) breed.active_buffs = [];
         }
 
-        breed.current_parameters.hp = Math.max(0, breed.current_parameters.hp + hpChange);
-        breed.current_parameters.str += strChange;
-        breed.current_parameters.spd += spdChange;
+        breed.current_parameters.hp += hpChange;
+        breed.current_parameters.atk += atkChange;
+        breed.current_parameters.mag += magChange;
+        breed.current_parameters.def += defChange;
+        breed.current_parameters.agi += agiChange;
+        breed.current_parameters.luk += lukChange;
+        breed.fatigue = Math.max(0, breed.fatigue + fatigueChange);
 
         if (action.effects.force_condition) breed.current_condition_id = action.effects.force_condition;
+
+        if (breed.fatigue >= 100 && breed.current_condition_id !== "cond_005") {
+            breed.fatigue = 100;
+            breed.current_condition_id = "cond_005";
+            addLog("⚠️ 疲労が限界に達し、「ケガ」をしてしまった！");
+        }
 
         DB.Events.forEach(evt => {
             if (evt.trigger === action.type && Math.random() < evt.prob) {
                 addLog(`✨ イベント発生: ${evt.name}`);
                 if (evt.effects) {
                     breed.current_parameters.hp += (evt.effects.hp || 0);
-                    breed.current_parameters.str += (evt.effects.str || 0);
-                    breed.current_parameters.spd += (evt.effects.spd || 0);
+                    breed.current_parameters.atk += (evt.effects.atk || 0);
+                    breed.current_parameters.mag += (evt.effects.mag || 0);
+                    breed.current_parameters.def += (evt.effects.def || 0);
+                    breed.current_parameters.agi += (evt.effects.agi || 0);
+                    breed.current_parameters.luk += (evt.effects.luk || 0); // lukに変更
                 }
                 if (evt.force_condition) breed.current_condition_id = evt.force_condition;
                 if (evt.reward) {
-                    let invItem = UserData.inventory.find(i => i.item_id === evt.reward);
-                    if (invItem) invItem.quantity++; else UserData.inventory.push({ item_id: evt.reward, quantity: 1 });
-                    addLog(`🎁 アイテムを入手した！`);
+                    let inv = UserData.inventory.find(i => i.item_id === evt.reward);
+                    if (inv) inv.quantity++; else UserData.inventory.push({ item_id: evt.reward, quantity: 1 });
                 }
             }
         });
 
         breed.remaining_actions--;
-        
         if (breed.remaining_actions <= 0) checkEvolution();
-        else if (breed.current_parameters.hp <= 0 && breed.current_condition_id !== "cond_005") {
-            breed.current_condition_id = "cond_005"; addLog("⚠️ ケガをしてしまった...");
-        }
 
         updateMainUI();
     }
 
     function checkEvolution() {
         const breed = UserData.active_breeding;
-        const params = breed.current_parameters;
+        const p = breed.current_parameters;
         addLog("🌟 進化の時です...");
 
         let evolvedId = breed.current_seed_id;
         for (let i = DB.Monsters.length - 1; i >= 0; i--) {
             const mon = DB.Monsters[i];
             if (mon.type === 'evolved' && mon.evolution_conditions.base_seed_ids.includes(breed.current_seed_id)) {
-                const cond = mon.evolution_conditions;
-                if (params.hp >= (cond.min_hp || 0) && params.str >= (cond.min_str || 0) && params.spd >= (cond.min_spd || 0)) {
+                const c = mon.evolution_conditions;
+                // luk判定に変更
+                if (p.hp >= (c.min_hp||0) && p.atk >= (c.min_atk||0) && p.mag >= (c.min_mag||0) && p.def >= (c.min_def||0) && p.agi >= (c.min_agi||0) && p.luk >= (c.min_luk||0)) {
                     evolvedId = mon.id; break;
                 }
             }
@@ -667,20 +404,13 @@
         breed.is_breeding = false;
 
         if (newMonster.type === 'evolved') {
-            addLog(`🎉 【${newMonster.name}】に進化しました！`);
-            // お金ボーナスなど
+            addLog(`🎉 【${newMonster.name}】に進化！ (報酬: 3000G)`);
             UserData.player_status.money += 3000;
-            addLog("育成報酬として 3000 G を獲得しました。");
         } else {
             addLog(`そのままの姿で育成を終えました。`);
         }
 
-        // 図鑑に登録
-        if(!UserData.monster_book.includes(evolvedId)) {
-            UserData.monster_book.push(evolvedId);
-        }
-        
-        // オートセーブ
+        if(!UserData.monster_book.includes(evolvedId)) UserData.monster_book.push(evolvedId);
         localStorage.setItem(SAVE_KEY, JSON.stringify(UserData));
     }
 
@@ -688,8 +418,7 @@
         const actContainer = document.getElementById('actions-container');
         DB.Actions.forEach(act => {
             const btn = document.createElement('button');
-            btn.className = 'btn';
-            btn.innerText = act.name;
+            btn.className = 'btn'; btn.innerText = act.name;
             btn.onclick = () => performAction(act.id);
             actContainer.appendChild(btn);
         });
