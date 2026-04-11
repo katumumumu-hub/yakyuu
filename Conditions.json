@@ -1,32 +1,7 @@
 [
-  {
-    "id": "cond_001",
-    "name": "ふつう",
-    "type": "neutral",
-    "effect_multiplier": { "training_gain": 1.0, "hp_loss": 1.0 }
-  },
-  {
-    "id": "cond_002",
-    "name": "好調",
-    "type": "good",
-    "effect_multiplier": { "training_gain": 1.2, "hp_loss": 0.9 }
-  },
-  {
-    "id": "cond_003",
-    "name": "絶好調",
-    "type": "excellent",
-    "effect_multiplier": { "training_gain": 1.5, "hp_loss": 0.8 }
-  },
-  {
-    "id": "cond_004",
-    "name": "疲労",
-    "type": "bad",
-    "effect_multiplier": { "training_gain": 0.8, "hp_loss": 1.5 }
-  },
-  {
-    "id": "cond_005",
-    "name": "ケガ",
-    "type": "very_bad",
-    "effect_multiplier": { "training_gain": 0.1, "hp_loss": 2.0 }
-  }
+  { "id": "cond_001", "name": "ふつう", "effect_multiplier": { "training_gain": 1.0, "fatigue_rate": 1.0 } },
+  { "id": "cond_002", "name": "好調", "effect_multiplier": { "training_gain": 1.2, "fatigue_rate": 0.8 } },
+  { "id": "cond_003", "name": "絶好調", "effect_multiplier": { "training_gain": 1.5, "fatigue_rate": 0.5 } },
+  { "id": "cond_004", "name": "疲労", "effect_multiplier": { "training_gain": 0.8, "fatigue_rate": 1.5 } },
+  { "id": "cond_005", "name": "ケガ", "effect_multiplier": { "training_gain": 0.1, "fatigue_rate": 2.0 } }
 ]
