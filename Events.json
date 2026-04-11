@@ -1,42 +1,7 @@
 [
-  {
-    "id": "evt_001",
-    "name": "トレーニング大成功！",
-    "trigger": "training",
-    "probability": 0.10,
-    "description": "いつもよりトレーニングの成果が大きく出た！",
-    "effects": { "bonus_str": 10, "bonus_spd": 10 }
-  },
-  {
-    "id": "evt_002",
-    "name": "足をつまづいた",
-    "trigger": "training",
-    "probability": 0.05,
-    "description": "派手に転んでしまった。コンディションが悪化した。",
-    "force_condition": "cond_004"
-  },
-  {
-    "id": "evt_003",
-    "name": "迷子の商人",
-    "trigger": "rest",
-    "probability": 0.10,
-    "description": "休んでいると商人がお礼にアイテムをくれた。",
-    "rewards": { "item_id": "item_001", "quantity": 1 }
-  },
-  {
-    "id": "evt_004",
-    "name": "ぐっすり熟睡",
-    "trigger": "rest",
-    "probability": 0.15,
-    "description": "とても良い睡眠がとれた。コンディションが良くなった！",
-    "force_condition": "cond_003"
-  },
-  {
-    "id": "evt_005",
-    "name": "突然のひらめき",
-    "trigger": "training",
-    "probability": 0.03,
-    "description": "モンスターが新しい動きを閃いた！全ステータスアップ！",
-    "effects": { "bonus_hp": 20, "bonus_str": 20, "bonus_spd": 20 }
-  }
+  { "id": "evt_001", "name": "大成功！", "trigger": "training", "probability": 0.10, "effects": { "atk": 10, "agi": 10 } },
+  { "id": "evt_002", "name": "足をつまづいた", "trigger": "training", "probability": 0.05, "force_condition": "cond_004" },
+  { "id": "evt_003", "name": "迷子の商人", "trigger": "rest", "probability": 0.10, "rewards": { "item_id": "item_001" } },
+  { "id": "evt_004", "name": "ぐっすり熟睡", "trigger": "rest", "probability": 0.15, "force_condition": "cond_003" },
+  { "id": "evt_005", "name": "突然のひらめき", "trigger": "training", "probability": 0.03, "effects": { "hp": 20, "atk": 20, "mag": 20, "def": 20, "agi": 20, "luk": 20 } }
 ]
