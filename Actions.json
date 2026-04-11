@@ -1,37 +1,22 @@
 [
   {
-    "id": "act_001",
-    "name": "ランニング",
-    "type": "training",
-    "cost": 1,
-    "effects": { "hp": -10, "str": 5, "spd": 10 }
+    "id": "act_001", "name": "ランニング", "type": "training",
+    "effects": { "fatigue": 15, "hp": 5, "atk": 0, "mag": 0, "def": 0, "agi": 10, "luk": 15 }
   },
   {
-    "id": "act_002",
-    "name": "丸太割り",
-    "type": "training",
-    "cost": 1,
-    "effects": { "hp": -20, "str": 15, "spd": 0 }
+    "id": "act_002", "name": "丸太割り", "type": "training",
+    "effects": { "fatigue": 20, "hp": 0, "atk": 15, "mag": 0, "def": 5, "agi": 0, "luk": 10 }
   },
   {
-    "id": "act_003",
-    "name": "滝行",
-    "type": "training",
-    "cost": 1,
-    "effects": { "hp": -15, "str": 5, "spd": 5 }
+    "id": "act_003", "name": "滝行", "type": "training",
+    "effects": { "fatigue": 15, "hp": 0, "atk": 0, "mag": 15, "def": 10, "agi": 0, "luk": 5 }
   },
   {
-    "id": "act_004",
-    "name": "お昼寝",
-    "type": "rest",
-    "cost": 1,
-    "effects": { "hp": 40, "str": 0, "spd": 0 }
+    "id": "act_004", "name": "お昼寝", "type": "rest",
+    "effects": { "fatigue": -30, "hp": 30, "atk": 0, "mag": 0, "def": 0, "agi": 0, "luk": 0 }
   },
   {
-    "id": "act_005",
-    "name": "病院で治療",
-    "type": "rest",
-    "cost": 1,
-    "effects": { "hp": 50, "str": 0, "spd": 0, "force_condition": "cond_001" }
+    "id": "act_005", "name": "病院で治療", "type": "rest",
+    "effects": { "fatigue": -50, "hp": 50, "atk": 0, "mag": 0, "def": 0, "agi": 0, "luk": 0, "force_condition": "cond_001" }
   }
 ]
