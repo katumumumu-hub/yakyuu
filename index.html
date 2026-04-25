@@ -1,432 +1,665 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>モンスター育成ファクトリー</title>
-    <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #e74c3c; --bg: #ecf0f1; --text: #2c3e50; --white: #ffffff; --nav: #2980b9; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .game-container { width: 100%; max-width: 800px; background: var(--white); border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
-        .header { grid-column: 1 / -1; background: var(--primary); color: var(--white); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-bar { grid-column: 1 / -1; display: flex; background: var(--secondary); }
-        .nav-btn { flex: 1; padding: 12px 0; background: transparent; color: var(--white); border: none; border-right: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; }
-        .nav-btn:hover { background: var(--nav); }
-        .nav-btn:last-child { border-right: none; }
-        .panel { padding: 20px; }
-        .monster-display { text-align: center; border-bottom: 2px solid var(--bg); padding-bottom: 20px; margin-bottom: 20px; }
-        .monster-image { margin: 10px auto; background: transparent; border-radius: 50%; width: 150px; height: 150px; display: flex; justify-content: center; align-items: center; }
-        .status-box { background: #f8f9fa; padding: 15px; border-radius: 8px; font-weight: bold; }
-        .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 3px; }
-        .actions-panel { border-left: 2px solid var(--bg); }
-        h3 { margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
-        .btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; background: var(--primary); color: var(--white); border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        .btn:hover { background: var(--secondary); }
-        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--white); width: 90%; max-width: 600px; max-height: 80vh; border-radius: 10px; padding: 20px; position: relative; overflow-y: auto; }
-        .close-btn { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
-        .close-btn:hover { background: #c0392b; }
-        .list-item { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
-        .list-item img { width: 50px; height: 50px; object-fit: contain; margin-right: 15px; }
-        .list-info { flex: 1; }
-        .list-info h4 { margin: 0 0 5px 0; }
-        .list-info p { margin: 0; font-size: 12px; color: #666; }
-        .buy-btn, .use-btn { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .buy-btn:hover, .use-btn:hover { background: #2ecc71; }
-        .buy-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-        .pokedex-card { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; background: #f9f9f9; }
-        .pokedex-card img { width: 80px; height: 80px; object-fit: contain; }
-        .pokedex-card.locked img { filter: brightness(0); opacity: 0.3; }
-        .log-area { background: #333; color: #0f0; padding: 10px; height: 200px; overflow-y: auto; font-family: monospace; border-radius: 5px; }
-        .log-entry { border-bottom: 1px dotted #555; padding: 3px 0; }
-        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; z-index: 3000; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONE PIECE クイズ</title>
+<style>
+    :root {
+        --bg-color: #d2b48c;
+        --poster-bg: #fdf5e6;
+        --border-color: #5a3a22;
+        --text-color: #332211;
+        --btn-color: #8b0000;
+        --btn-hover: #a52a2a;
+    }
+    
+    body {
+        font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        background-color: var(--bg-color);
+        background-image: linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.05)), 
+                          linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.05));
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text-color);
+    }
+
+    #app {
+        width: 100%;
+        max-width: 600px;
+        background-color: var(--poster-bg);
+        border: 8px solid var(--border-color);
+        border-radius: 4px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .screen {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .screen.active {
+        display: flex;
+    }
+
+    h1 {
+        font-family: serif;
+        font-size: 2.5em;
+        text-align: center;
+        margin: 0 0 20px 0;
+        border-bottom: 3px double var(--border-color);
+        padding-bottom: 10px;
+        letter-spacing: 2px;
+    }
+
+    h2 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    button {
+        background-color: var(--btn-color);
+        color: white;
+        border: 2px solid #330000;
+        padding: 12px 20px;
+        font-size: 1.1em;
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 10px;
+        width: 80%;
+        max-width: 300px;
+        transition: background-color 0.2s, transform 0.1s;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+
+    button:hover {
+        background-color: var(--btn-hover);
+    }
+
+    button:active {
+        transform: scale(0.98);
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    button:disabled {
+        background-color: #888;
+        cursor: not-allowed;
+        border-color: #555;
+    }
+
+    /* クイズ画面用スタイル */
+    .header-info {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    .pt-display {
+        color: #d32f2f;
+    }
+
+    .name-hint-box {
+        font-size: 2em;
+        letter-spacing: 5px;
+        margin: 20px 0;
+        padding: 15px;
+        background-color: rgba(255,255,255,0.5);
+        border: 2px dashed var(--border-color);
+        border-radius: 5px;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .hints-container {
+        width: 100%;
+        min-height: 180px;
+        margin-bottom: 15px;
+    }
+
+    .hint-item {
+        background-color: #f0e6d2;
+        border-left: 5px solid var(--border-color);
+        padding: 10px;
+        margin-bottom: 8px;
+        font-size: 1.1em;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    input[type="text"] {
+        width: 90%;
+        padding: 12px;
+        font-size: 1.2em;
+        border: 2px solid var(--border-color);
+        border-radius: 5px;
+        margin-bottom: 15px;
+        text-align: center;
+        background-color: #fff;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .action-buttons button {
+        width: 45%;
+        margin: 0;
+    }
+
+    .btn-skip {
+        background-color: #4a4a4a !important;
+    }
+    .btn-skip:hover {
+        background-color: #6a6a6a !important;
+    }
+
+    /* 結果画面用スタイル */
+    .result-score {
+        font-size: 3em;
+        color: #d32f2f;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+
+    .result-rank {
+        font-size: 2em;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .result-comment {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    /* 記録画面用スタイル */
+    .record-table {
+        width: 80%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+    .record-table th, .record-table td {
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        text-align: center;
+        font-size: 1.2em;
+    }
+    .record-table th {
+        background-color: rgba(90, 58, 34, 0.2);
+    }
+
+    /* フィードバックアニメーション */
+    #feedback {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 4em;
+        font-weight: bold;
+        z-index: 10;
+        text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+        pointer-events: none;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #feedback.show {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .correct { color: #4CAF50; }
+    .incorrect { color: #F44336; }
+    .skipped { color: #FF9800; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 </head>
 <body>
 
-<div id="loading-screen">データを読み込み中...</div>
-
-<div class="game-container" id="game-ui" style="display: none;">
-    <div class="header">
-        <h2 style="margin:0;">モンスター育成ファクトリー</h2>
-        <div>所持金: <span id="ui-money">0</span> G | 残り行動: <strong id="ui-turns" style="color:var(--accent); font-size: 1.2em;">0</strong> 回</div>
+<div id="app">
+    <div id="home-screen" class="screen active">
+        <h1>WANTED<br><span style="font-size: 0.6em">ONE PIECE クイズ</span></h1>
+        <h2>難易度を選択してください</h2>
+        <button onclick="startGame(1)">レベル 1</button>
+        <button onclick="startGame(2)">レベル 2</button>
+        <button onclick="startGame(3)">レベル 3</button>
+        <div style="height: 20px;"></div>
+        <button onclick="showRecords()" style="background-color: #5a3a22;">記録を見る</button>
     </div>
 
-    <div class="nav-bar">
-        <button class="nav-btn" onclick="openModal('modal-inventory')">👜 持ち物</button>
-        <button class="nav-btn" onclick="openModal('modal-shop')">🛒 ショップ</button>
-        <button class="nav-btn" onclick="openModal('modal-pokedex')">📖 図鑑</button>
-        <button class="nav-btn" onclick="openModal('modal-settings')">⚙️ 設定</button>
-    </div>
-
-    <div class="panel">
-        <div class="monster-display" id="monster-display-area">
-            <h3 id="ui-monster-name">-</h3>
-            <div class="monster-image" id="ui-monster-img"></div>
-            <div id="ui-condition" style="font-weight: bold; color: var(--accent); margin-bottom: 5px;">-</div>
-            <div style="font-weight: bold; color: #8e44ad; margin-bottom: 10px;">疲労度: <span id="ui-fatigue">0</span> / 100</div>
+    <div id="quiz-screen" class="screen">
+        <div class="header-info">
+            <span id="level-display">Lv.1</span>
+            <span id="question-count">1 / 10 問</span>
+            <span class="pt-display">残pt: <span id="score-display">100</span></span>
         </div>
-        <div class="status-box">
-            <div class="status-row"><span>HP:</span> <span id="ui-hp">0</span></div>
-            <div class="status-row"><span>攻撃 (ATK):</span> <span id="ui-atk">0</span></div>
-            <div class="status-row"><span>魔法 (MAG):</span> <span id="ui-mag">0</span></div>
-            <div class="status-row"><span>防御 (DEF):</span> <span id="ui-def">0</span></div>
-            <div class="status-row"><span>俊敏 (AGI):</span> <span id="ui-agi">0</span></div>
-            <div class="status-row"><span>運 (LUK):</span> <span id="ui-luk">0</span></div>
+        <div id="name-hint" class="name-hint-box">〇〇〇〇⚪︎〇〇</div>
+        
+        <button id="btn-hint" onclick="useHint()">ヒント解放 (初回無料)</button>
+        
+        <div id="hints-container" class="hints-container"></div>
+        
+        <input type="text" id="answer-input" placeholder="キャラクター名を入力" autocomplete="off" onkeypress="handleEnter(event)">
+        
+        <div class="action-buttons">
+            <button onclick="checkAnswer()">回答する</button>
+            <button class="btn-skip" onclick="skipQuestion()">次へ (-25pt)</button>
         </div>
+        <div id="feedback"></div>
     </div>
 
-    <div class="panel actions-panel">
-        <h3>行動 (Actions)</h3>
-        <div id="actions-container"></div>
+    <div id="result-screen" class="screen">
+        <h2 id="result-level">レベル 1 結果</h2>
+        <div>残pt</div>
+        <div id="final-score" class="result-score">100</div>
+        <div id="final-rank" class="result-rank">ONE PIECE 博士</div>
+        <div id="final-comment" class="result-comment">完璧だ！君こそが次の海賊王だ！</div>
+        <button onclick="showHome()">ホームに戻る</button>
+    </div>
+
+    <div id="record-screen" class="screen">
+        <h1>自己最高記録</h1>
+        <table class="record-table">
+            <tr><th>レベル 1</th><td id="rec-lv1">- pt</td></tr>
+            <tr><th>レベル 2</th><td id="rec-lv2">- pt</td></tr>
+            <tr><th>レベル 3</th><td id="rec-lv3">- pt</td></tr>
+        </table>
+        <button onclick="showHome()">ホームに戻る</button>
     </div>
 </div>
 
-<div id="modal-inventory" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('modal-inventory')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">持ち物</h2><div id="inventory-list"></div></div></div>
-<div id="modal-shop" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('modal-shop')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">ショップ (所持金: <span id="shop-money">0</span> G)</h2><div id="shop-list"></div></div></div>
-<div id="modal-pokedex" class="modal"><div class="modal-content" style="max-width: 800px;"><button class="close-btn" onclick="closeModal('modal-pokedex')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">モンスター図鑑</h2><div class="pokedex-grid" id="pokedex-grid"></div></div></div>
-<div id="modal-settings" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('modal-settings')">X</button><h2 style="margin-top:0; border-bottom: 2px solid var(--primary);">設定・システム</h2><button class="btn" style="background:#e67e22;" onclick="saveGame()">💾 セーブする (ブラウザに保存)</button><button class="btn" style="background:#c0392b; margin-bottom: 20px;" onclick="resetSave()">🗑️ セーブデータを消去して最初から</button><h3>行動ログ</h3><div class="log-area" id="system-log"></div></div></div>
-
 <script>
-    let DB = {};
-    let UserData = {};
-    let GameLogs = []; 
-    // セーブデータをv3に更新して古いエラーを防ぐ
-    const SAVE_KEY = "monster_factory_save_v3"; 
+// JSONデータ
+const onepieceData = [
+  {
+    "level": 1,
+    "characters": [
+      {"name": "モンキー・D・ルフィ", "name_hint": "〇〇〇〇⚪︎〇⚪︎〇〇⚪︎", "hints": ["東の海（イーストブルー）編から登場", "「わりい、おれ死んだ」", "麦わら帽子、目の下に傷がある", "「海賊王におれはなる!!!!」", "ゴムゴムの実（ヒトヒトの実 幻獣種 モデル\"ニカ\"）"]},
+      {"name": "ロロノア・ゾロ", "name_hint": "〇〇〇〇⚪︎〇〇", "hints": ["東の海編から登場", "「背中の傷は剣士の恥だ」", "緑色の髪、左目に傷、腹巻き", "「何も!!! なかった…!!!」", "食べていない（三刀流）"]},
+      {"name": "ナミ", "name_hint": "〇〇", "hints": ["東の海編から登場", "「この船の航海士は誰!!?」", "オレンジ色の髪、左肩にみかんと風車のタトゥー", "「ルフィ…助けて…」", "食べていない（クリマ・タクト）"]},
+      {"name": "ウソップ", "name_hint": "〇〇⚪︎〇", "hints": ["東の海編から登場", "「おれには8千人の部下がいる！」", "長い鼻、ゴーグル、オーバーオール", "「そげ撃く島で〜♪生まれたおれは〜♪」", "食べていない（狙撃手）"]},
+      {"name": "サンジ", "name_hint": "〇〇〇", "hints": ["東の海編から登場", "「女のウソは許すのが男だ」", "金髪、ぐるぐる眉毛、常に黒スーツ", "「くそお世話になりました!!!」", "食べていない（足技）"]},
+      {"name": "トニートニー・チョッパー", "name_hint": "〇〇〇〇〇〇⚪︎〇⚪︎⚪︎〇〇", "hints": ["ドラム島（冬島）編から登場", "「おれが万能薬になるんだ!!!」", "青い鼻、ピンクの帽子を被っている", "「ほめられても嬉しくねェぞコノヤローが♪」", "ヒトヒトの実"]},
+      {"name": "ニコ・ロビン", "name_hint": "〇〇⚪︎〇〇〇", "hints": ["アラバスタ編から登場", "「歴史は常に繰り返すけど…人は過去には戻れない」", "黒髪の長髪、初登場時はカウボーイハット", "「生きたい!!!!」", "ハナハナの実"]},
+      {"name": "フランキー", "name_hint": "〇〇〇〇〇", "hints": ["ウォーターセブン編から登場", "「存在する事は罪にはならねェ!!!」", "水色のリーゼント、アロハシャツに海パン", "「スゥ〜パァ〜!!!」", "食べていない（サイボーグ）"]},
+      {"name": "ブルック", "name_hint": "〇〇⚪︎〇", "hints": ["スリラーバーク編から登場", "「男が一度…!!! 必ず帰ると言ったのだから!!!」", "アフロヘアーの動く骸骨、シルクハット", "「パンツ見せてもらってもよろしいですか？」", "ヨミヨミの実"]},
+      {"name": "ジンベエ", "name_hint": "〇〇〇〇", "hints": ["インペルダウン編から登場", "「失った物ばかり数えるな!!!」", "水色の肌、鮫の魚人、着物を着ている", "「未来の海賊王の仲間になろうっちゅう男が四皇ごときに臆しておられるかァ!!!」", "食べていない（魚人空手）"]}
+    ]
+  },
+  {
+    "level": 2,
+    "characters": [
+      {"name": "シャンクス", "name_hint": "〇⚪︎〇〇〇", "hints": ["東の海編から登場", "「安いもんだ 腕の一本くらい…」", "赤髪、左目に３本の傷、片腕がない", "「この帽子をお前に預ける」", "食べていない（覇王色の覇気）"]},
+      {"name": "ポートガス・D・エース", "name_hint": "〇〇〇〇〇⚪︎〇⚪︎〇〇〇", "hints": ["アラバスタ編から登場", "「出来の悪い弟を持つと…兄貴は心配なんだ」", "黒髪、そばかす、背中に白ひげのマーク", "「愛してくれて……ありがとう!!!」", "メラメラの実"]},
+      {"name": "サボ", "name_hint": "〇〇", "hints": ["ルフィの過去編から登場", "「ルフィのバックにはおれがついてる!!!」", "金髪、シルクハット、左目に火傷の痕", "「あいつの意志はおれ達が継いでいくんだ!!!」", "メラメラの実（エースから継承）"]},
+      {"name": "トラファルガー・ロー", "name_hint": "〇〇〇⚪︎〇〇〇⚪︎〇〇", "hints": ["シャボンディ諸島編から登場", "「弱ェ奴は死に方も選べねェ」", "ファー付きの帽子、全身にタトゥー、野太刀", "「歯車を壊したぞ!! もう誰も引き返せねェ!!!」", "オペオペの実"]},
+      {"name": "ボア・ハンコック", "name_hint": "〇〇⚪︎〇〇〇⚪︎〇", "hints": ["アマゾン・リリー編から登場", "「わらわが何をしようとも…世界中がそれを許してくれる!!」", "黒髪ロング、絶世の美女、ヘビのイヤリング", "「そうよ…わらわが美しいから!!!」", "メロメロの実"]},
+      {"name": "カイドウ", "name_hint": "〇〇〇〇", "hints": ["ドレスローザ編（終盤）から登場", "「お前も…”ジョイボーイ”には……なれなかったか………!!」", "巨大な体躯、2本の角、左腕に龍のタトゥー", "「ウォロロロロ!!」", "ウオウオの実（幻獣種 モデル\"青龍\"）"]},
+      {"name": "シャーロット・リンリン", "name_hint": "〇⚪︎〇〇⚪︎〇⚪︎〇〇〇〇", "hints": ["魚人島編（声のみ）〜", "「お前ならおれ達の王になれたかもしれないのに!!」", "巨体、ピンク色の髪、派手なドレス", "「マ〜マハハハハ!! ライフ・オア・トリート!!」", "ソルソルの実"]},
+      {"name": "エドワード・ニューゲート", "name_hint": "〇〇〇〇〇⚪︎〇⚪︎〇〇〇〇", "hints": ["ジャヤ編から登場", "「おれは父親をやれていたか…？」", "巨大な体躯、白い三日月型のヒゲ、巨大な薙刀", "「ONE PIECEは実在する!!!」", "グラグラの実"]},
+      {"name": "マーシャル・D・ティーチ", "name_hint": "〇〇〇⚪︎〇⚪︎〇⚪︎〇⚪︎〇〇", "hints": ["ジャヤ編から登場", "「死ぬも生きるも天任せよ」", "欠けた歯、黒いあごひげ、チェリーパイを食べていた", "「人の夢は!!! 終わらねェ!!!!」", "ヤミヤミの実（＆グラグラの実）"]},
+      {"name": "バギー", "name_hint": "〇〇〇", "hints": ["東の海編から登場", "「派手に死ねェ!!!」", "ピエロのようなメイク、大きくて赤い丸鼻", "「おれと一緒に夢を見ねェか!!!?」", "バラバラの実"]}
+    ]
+  },
+  {
+    "level": 3,
+    "characters": [
+      {"name": "サカズキ", "name_hint": "〇〇〇〇", "hints": ["頂上戦争編などで登場", "「わしはあいつらを絶対に許さん!!」", "赤いスーツ、胸に薔薇、海軍の帽子", "「海賊という”悪”を許すな!!!」", "マグマグの実"]},
+      {"name": "クザン", "name_hint": "〇〇〇", "hints": ["ロングリングロングランド編などで登場", "「正義なんてのは立場によって形を変える」", "青いシャツ、白いベスト、アイマスクを付けている", "「あらら…」", "ヒエヒエの実"]},
+      {"name": "ボルサリーノ", "name_hint": "〇〇〇〇〇〇", "hints": ["シャボンディ諸島編などで登場", "「どっちでもいいじゃないの〜」", "黄色いストライプのスーツ、色付きメガネ", "「コワイねェ〜 若い世代は」", "ピカピカの実"]},
+      {"name": "モンキー・D・ガープ", "name_hint": "〇〇〇〇⚪︎〇⚪︎〇〇〇", "hints": ["ウォーターセブン編（本格登場）", "「お前達は立派な海兵になるんじゃぞ!!」", "白髪、左目に傷、初登場時は犬の被り物", "「愛ある拳は防ぐ術なし!!」", "食べていない（ゲンコツ）"]},
+      {"name": "クロコダイル", "name_hint": "〇〇〇〇〇〇", "hints": ["アラバスタ編で登場", "「負け犬は正義を語れねェ…」", "顔を横断する傷跡、左手に黄金のフック、葉巻", "「理想ってのは実力伴う者のみ口にできる現実だ」", "スナスナの実"]},
+      {"name": "ドンキホーテ・ドフラミンゴ", "name_hint": "〇〇〇〇〇〇⚪︎〇〇〇〇〇〇", "hints": ["ジャヤ編から登場", "「勝者だけが正義だ!!!!」", "金髪、とがったサングラス、ピンクの羽飾りコート", "「フッフッフッフッ!!!」", "イトイトの実"]},
+      {"name": "ロブ・ルッチ", "name_hint": "〇〇⚪︎〇⚪︎〇", "hints": ["ウォーターセブン編から登場", "「弱小は罪なのだ」", "黒いシルクハット、肩にハトを乗せている", "「闇の正義の名の下に」", "ネコネコの実（モデル\"レオパルド\"）"]},
+      {"name": "エネル", "name_hint": "〇〇〇", "hints": ["空島編で登場", "「ヤハハハハ!!!」", "背中に太鼓、長い福耳、頭に白い頭巾", "「我は神なり」", "ゴロゴロの実"]},
+      {"name": "ユースタス・キッド", "name_hint": "〇〇〇〇〇⚪︎〇⚪︎〇", "hints": ["シャボンディ諸島編から登場", "「おれ達が通ってきた航路じゃあ…そんな事口にすると大笑いされたモンだ」", "逆立った赤髪、ゴーグル、機械の左腕", "「誰がゴミだァ!!!」", "ジキジキの実"]},
+      {"name": "シルバーズ・レイリー", "name_hint": "〇〇〇〇〇⚪︎〇〇〇〇", "hints": ["シャボンディ諸島編などで登場", "「今の時代を作れるのは今を生きてる人間だけだよ」", "白髪の長髪、丸メガネ、右目に傷、マント", "「若い芽を摘むんじゃない…これから始まるのだよ!! 彼らの時代は!!!」", "食べていない（海賊王の右腕）"]}
+    ]
+  },
+  {
+    "level": 4,
+    "characters": [
+      {"name": "ネフェルタリ・ビビ", "name_hint": "〇〇⚪︎〇〇〇⚪︎〇〇", "hints": ["ウイスキーピーク編から登場", "「私…! みんなと一緒に冒険したいですけど…!」", "水色の長髪、王女の服装", "「いつかまた会えたら!!! もう一度仲間と呼んでくれますか!!!?」", "食べていない（孔雀スラッシャー）"]},
+      {"name": "しらほし", "name_hint": "〇〇〇〇", "hints": ["魚人島編で登場", "「私…もう少し頑張りますっ…!!」", "巨大な人魚、ピンク色の髪、鯛焼き型の髪飾り", "「お母様との約束ですから…!!!」", "食べていない（古代兵器ポセイドン）"]},
+      {"name": "レベッカ", "name_hint": "〇〇⚪︎〇", "hints": ["ドレスローザ編で登場", "「ルーシー!!!」", "ピンク色の三つ編み、黄金の兜、ビキニアーマー", "「私は戦わない!!」", "食べていない（背水の剣舞）"]},
+      {"name": "ヤマト", "name_hint": "〇〇〇", "hints": ["ワノ国編で登場", "「君はエースの弟なんだろ!?」", "白い長髪にグラデーション、角が生えている、大きな金棒", "「僕はおでんだ!!!」", "イヌイヌの実（幻獣種 モデル\"大口真神\"）"]},
+      {"name": "光月おでん", "name_hint": "〇〇〇〇〇", "hints": ["ワノ国編（過去）で登場", "「窮屈でござる!!!」", "巨大な丁髷、背中に巨大な襷、二刀流", "「煮えてなんぼのォ〜!! おでんに候!!!」", "食べていない（閻魔・天羽々斬）"]},
+      {"name": "マルコ", "name_hint": "〇〇〇", "hints": ["ジャヤ編から登場", "「いきなり”キング”は取れねェだろうよい」", "パイナップルに似た金髪、胸に白ひげのタトゥー、眼鏡", "「〜だよい（語尾）」", "トリトリの実（幻獣種 モデル\"不死鳥\"）"]},
+      {"name": "バーソロミュー・くま", "name_hint": "〇〇〇〇〇⚪︎〇⚪︎〇〇", "hints": ["スリラーバーク編から登場", "「おれは革命軍の幹部だ」", "巨漢、クマ耳付きの帽子、常に聖書を持っている", "「旅行するなら…どこへ行きたい？」", "ニキュニキュの実"]},
+      {"name": "エンポリオ・イワンコフ", "name_hint": "〇〇〇〇〇⚪︎〇〇〇〇〇", "hints": ["インペルダウン編から登場", "「奇跡は諦めない奴の頭上にしか降りて来ない!!!!」", "異常に巨大な顔、紫のアフロヘアー、網タイツ", "「ヒーハー!!!」", "ホルホルの実"]},
+      {"name": "ベン・ベックマン", "name_hint": "〇〇⚪︎〇⚪︎〇〇〇", "hints": ["東の海編から登場", "「銃を抜いたからには命を懸けろよ」", "黒髪（後に白髪混じり）、タバコ、ライフル銃を持っている", "「何もすんな 黄猿!!」", "食べていない（赤髪海賊団副船長）"]},
+      {"name": "スモーカー", "name_hint": "〇〇〇〇〇", "hints": ["ローグタウン編から登場", "「おれのズボンがアイス食っちまった」", "銀髪、葉巻を常に２本咥えている、背中に十手", "「海賊はどこまでいっても海賊だ!!!」", "モクモクの実"]}
+    ]
+  },
+  {
+    "level": 5,
+    "characters": [
+      {"name": "シャーロット・カタクリ", "name_hint": "〇⚪︎〇〇⚪︎〇⚪︎〇〇〇〇", "hints": ["ホールケーキアイランド編で登場", "「おれは…決して地には伏せない…!!」", "短髪、口元をファーのマフラーで隠している", "「お前より…ずいぶん先が見える……!!」", "モチモチの実"]},
+      {"name": "キング", "name_hint": "〇〇〇", "hints": ["ワノ国編で登場", "「カイドウさんこそ海賊王になる男だ」", "全身黒ずくめのスーツ、黒い羽、背中に炎を纏う", "「誰が…!! おれの顔を見た…!?」", "リュウリュウの実（古代種 モデル\"プテラノドン\"）"]},
+      {"name": "クイーン", "name_hint": "〇〇〇〇", "hints": ["ワノ国編で登場", "「痩せたらモテすぎるからあえて痩せないタイプ」", "金髪の弁髪、丸いサングラス、でっぷりした体型", "「ズームズームズームズーム♪」", "リュウリュウの実（古代種 モデル\"ブラキオサウルス\"）"]},
+      {"name": "ジャック", "name_hint": "〇⚪︎⚪︎〇", "hints": ["ゾウ編から登場", "「誰だと思っている!!!」", "巨漢、頭に角、口元に金属製のマスク", "「持って来いと言うのだ…!! 雷ぞうを!!!」", "ゾウゾウの実（古代種 モデル\"マンモス\"）"]},
+      {"name": "バルトロメオ", "name_hint": "〇〇〇〇〇〇", "hints": ["ドレスローザ編で登場", "「おれはルフィ先輩の役に立つ男になるべ!!!」", "緑色のトサカ頭、鼻ピアス、尖った牙", "「ルフィ先パァ〜〜〜イ!!!」", "バリバリの実"]},
+      {"name": "キャベンディッシュ", "name_hint": "〇⚪︎〇〇〇⚪︎⚪︎〇⚪︎", "hints": ["ドレスローザ編で登場", "「人気がありすぎて困る」", "金髪の巻き毛、フリルのついた貴公子のような服装", "「僕の美しさが罪なんだ!!」", "食べていない（夢遊病でハクバになる）"]},
+      {"name": "錦えもん", "name_hint": "〇〇〇〇", "hints": ["パンクハザード編から登場", "「拙者、腹など減らぬ!!!（グー）」", "丁髷、着物姿の侍", "「死に損ない共ォ!! 前進あるのみ!!!」", "フクフクの実"]},
+      {"name": "ペドロ", "name_hint": "〇〇〇", "hints": ["ゾウ編から登場", "「ルフィ達は世界を夜明けに導く者達だ!!」", "ジャガーのミンク族、片目が隠れている、タバコ", "「ここは!!! おれに任せろォ!!!」", "食べていない（剣とエレクトロ）"]},
+      {"name": "キャロット", "name_hint": "〇⚪︎〇⚪︎〇", "hints": ["ゾウ編から登場", "「私も海に出てみたいの!!」", "白いウサギのミンク族、緑色のマント", "「ガルチュー!!」", "食べていない（月の獅子/スーロン化）"]},
+      {"name": "ベラミー", "name_hint": "〇〇〇〇", "hints": ["ジャヤ編から登場", "「おれは…!! ルフィを裏切らねェ!!!」", "金髪、サングラス、顔に傷跡", "「海賊が夢を見る時代はもう終わったんだ!!!」", "バネバネの実"]}
+    ]
+  },
+  {
+    "level": 6,
+    "characters": [
+      {"name": "アーロン", "name_hint": "〇〇〇〇", "hints": ["東の海編で登場", "「お前らにこの海の何がわかる!!!」", "ノコギリザメの魚人、ギザギザの鼻、アロハシャツ", "「シャハハハ!! 人間は下等種族だ!!」", "食べていない（キリバチ）"]},
+      {"name": "ドン・クリーク", "name_hint": "〇〇⚪︎〇〇〇〇", "hints": ["東の海編で登場", "「おれは最強の武器と最強の鎧を持っている!!」", "全身を包む金色の鎧、紫色の髪", "「おれの艦隊を怒らせたな!!!」", "食べていない（MH5）"]},
+      {"name": "キャプテン・クロ", "name_hint": "〇⚪︎〇〇〇⚪︎〇〇", "hints": ["東の海編で登場", "「計画は絶対に狂わせない」", "丸メガネ、黒スーツ、手のひらでメガネを上げる癖", "「私がキャプテン・クロだと思い出す!!!」", "食べていない（猫の手）"]},
+      {"name": "セニョール・ピンク", "name_hint": "〇〇⚪︎〇〇⚪︎〇〇〇", "hints": ["ドレスローザ編で登場", "「ルシアン…君が笑ってくれるなら…」", "おしゃぶり、赤ん坊のボンネット、サングラス、ビキニパンツ", "「ハードボイルドだろ？」", "スイスイの実"]},
+      {"name": "ウルティ", "name_hint": "〇〇〇⚪︎", "hints": ["ワノ国編で登場", "「ペーたん!!」", "青とピンクのツートンカラーの髪、角、口元にマスク", "「うる頭銃（ズガン）!!!」", "リュウリュウの実（古代種 モデル\"パキケファロサウルス\"）"]},
+      {"name": "フーズ・フー", "name_hint": "〇〇〇⚪︎〇〇", "hints": ["ワノ国編で登場", "「お前…ジンベエだな!?」", "赤い兜、顔の上半分を覆うマスク、長身", "「太陽の神ニカの伝説を知っているか？」", "ネコネコの実（古代種 モデル\"サーベルタイガー\"）"]},
+      {"name": "シャーロット・ペロスペロー", "name_hint": "〇⚪︎〇〇⚪︎〇⚪︎〇〇〇〇〇〇", "hints": ["ホールケーキアイランド編で登場", "「ビッグ・マム海賊団の長男だ!!」", "長い舌、大きなシルクハット、キャンディの杖", "「ペロリン♪」", "ペロペロの実"]},
+      {"name": "ゲッコー・モリア", "name_hint": "〇⚪︎〇〇⚪︎〇〇〇", "hints": ["スリラーバーク編で登場", "「お前ら…おれの影になれ!!!」", "巨大な体躯、頭に角、玉ねぎのような髪型", "「キシシシシ!!! 他力本願!!!」", "カゲカゲの実"]},
+      {"name": "マゼラン", "name_hint": "〇〇〇〇", "hints": ["インペルダウン編で登場", "「おれは…下痢なんだ…」", "黒い制服、背中にコウモリの羽、悪魔のような角", "「ここは地獄の１丁目だ!!!」", "ドクドクの実"]},
+      {"name": "シーザー・クラウン", "name_hint": "〇〇〇〇⚪︎〇〇〇〇", "hints": ["パンクハザード編で登場", "「おれは世界最高の科学者だ!!」", "常にガス状になっている白衣、頭に角、紫色の髪", "「シュロロロロ!!!」", "ガスガスの実"]}
+    ]
+  },
+  {
+    "level": 7,
+    "characters": [
+      {"name": "カク", "name_hint": "〇〇", "hints": ["ウォーターセブン編から登場", "「わしはキリンが好きじゃ」", "四角い鼻、帽子、黒いスーツ", "「山風!!!（嵐脚）」", "ウシウシの実（モデル\"ジラフ\"）"]},
+      {"name": "ジャブラ", "name_hint": "〇⚪︎〇〇", "hints": ["エニエス・ロビー編で登場", "「カクより俺の方が強い!!」", "三つ編み、サングラス、中国風の服とあごひげ", "「ギャハハハ!! 嘘に決まってんだろ!!」", "イヌイヌの実（モデル\"ウルフ\"）"]},
+      {"name": "カリファ", "name_hint": "〇〇〇", "hints": ["ウォーターセブン編から登場", "「あなた、クビよ」", "金髪メガネ、網タイツ、黒い秘書服", "「セクハラです」", "アワアワの実"]},
+      {"name": "ハンニャバル", "name_hint": "〇〇〇⚪︎〇〇", "hints": ["インペルダウン編で登場", "「あ、つい本音が」", "ファラオのような頭飾り、ぽっこり出たお腹、薙刀", "「絶対に出さぬ!!!」", "食べていない（血吸）"]},
+      {"name": "サディちゃん", "name_hint": "〇〇⚪︎〇⚪︎〇", "hints": ["インペルダウン編で登場", "「あ〜ん、もっと鳴いて♡」", "ピンク色のボンデージ服、角、鞭を持っている", "「ン〜〜〜♡（恍惚）」", "食べていない（獄卒獣の指揮）"]},
+      {"name": "モモンガ", "name_hint": "〇〇〇〇", "hints": ["エニエス・ロビー編（バスターコール）などで登場", "「己の弱さは己で始末しろ」", "モヒカン頭、口ヒゲ、ストライプのスーツに海軍コート", "「（刀で自分の手を刺し、邪心を打ち消す）」", "食べていない（海軍中将・剣士）"]},
+      {"name": "ワイパー", "name_hint": "〇〇〇〇", "hints": ["空島編で登場", "「先祖の無念はおれ達が晴らす!!」", "モヒカン、右半身に入れ墨、常にタバコを咥えている", "「燃焼砲（バーンバズーカ）!!!」", "食べていない（排撃貝）"]},
+      {"name": "ガン・フォール", "name_hint": "〇〇⚪︎〇⚪︎〇〇", "hints": ["空島編で登場", "「私は神だ…元神だがね」", "鎧兜、白い髭、ペガサス（ピエール）に乗っている", "「我輩は空の騎士!!!」", "食べていない（ランス）"]},
+      {"name": "パウリー", "name_hint": "〇〇〇〇", "hints": ["ウォーターセブン編で登場", "「借金取りが来てるから隠れてるんだ」", "ゴーグル、葉巻、常にロープを持っている", "「ハレンチな女め!!!」", "食べていない（ロープアクション）"]},
+      {"name": "ギン", "name_hint": "〇〇", "hints": ["東の海編で登場", "「おれは…ドン・クリークの右腕だ」", "鉢巻、目の周りが黒い、ドクロの模様の服", "「サンジさん…うめェ…うめェよぉ…」", "食べていない（先端に鉄球のついたトンファー）"]}
+    ]
+  },
+  {
+    "level": 8,
+    "characters": [
+      {"name": "Tボーン", "name_hint": "〇〇〇〇", "hints": ["ウォーターセブン編（海列車）で登場", "「100の善行を積まねば!!」", "骸骨のように痩せこけた顔、欠けた歯、直角に曲がった剣", "「私の曲がった剣は平和への思い!!!」", "食べていない（海軍本部大佐/後に中将）"]},
+      {"name": "フルボディ", "name_hint": "〇〇〇〇⚪︎", "hints": ["東の海編などで登場", "「ワインの銘柄を当ててやろう」", "ピンク色の髪（後にスキンヘッド）、右顔面に傷、鉄のナックル", "「おれは両鉄拳のフルボディだ!!」", "食べていない"]},
+      {"name": "ジャンゴ", "name_hint": "〇⚪︎〇〇", "hints": ["東の海編などで登場", "「おれは裏切りのジャンゴ」", "ハート型のメガネ、縞々の帽子、アゴにキノコの飾りのようなヒゲ", "「１・２の・ジャンゴ!!!」", "食べていない（催眠術）"]},
+      {"name": "ワンゼ", "name_hint": "〇〇〇", "hints": ["ウォーターセブン編（海列車）で登場", "「おれはCP7の料理格闘家だ！」", "ぐるぐるほっぺ、出っ歯、ローラー付きの靴", "「マッド！マッド！マ〜ッド!!!」", "食べていない（ラーメン拳法）"]},
+      {"name": "ネロ", "name_hint": "〇〇", "hints": ["ウォーターセブン編（海列車）で登場", "「おれはCP9の新人だ!!」", "ネコ耳のような帽子、黒スーツ、二丁拳銃", "「四式!!!」", "食べていない（六式使いだが指銃と鉄塊が使えない）"]},
+      {"name": "ディスコ", "name_hint": "〇⚪︎〇〇", "hints": ["シャボンディ諸島編で登場", "「ここはヒューマンショップだ!!」", "星型のサングラス、派手なスーツ、マイク", "「さぁさぁ今度の目玉商品はこちら!!」", "食べていない（オークション司会）"]},
+      {"name": "スクアード", "name_hint": "〇〇〇〇〇", "hints": ["頂上戦争編で登場", "「おれは白ひげに騙されていた!!」", "額に蜘蛛の刺青、長髪、大剣を持っている", "「親父ィ!!! なぜエースだけを助けるんだ!!!」", "食べていない（大渦蜘蛛）"]},
+      {"name": "リトルオーズJr.", "name_hint": "〇〇〇〇〇〇〇〇⚪︎", "hints": ["頂上戦争編で登場", "「エース君は優しいんだ」", "巨人族以上の巨大な体躯、編み笠を被っている、角", "「エース君を助けに行くんだ!!!」", "食べていない"]},
+      {"name": "ドーマ", "name_hint": "〇〇〇", "hints": ["頂上戦争編で登場", "「白ひげ海賊団傘下だ!!」", "バンダナ、逆手持ちの二刀流、肩に猿を乗せている", "「おれ達も行くぜ!!!」", "食べていない（遊騎士）"]},
+      {"name": "ジャン・バール", "name_hint": "〇⚪︎〇⚪︎〇〇〇", "hints": ["シャボンディ諸島編から登場", "「ロー船長、命令を」", "巨漢、スキンヘッド、頭の横に星のタトゥー", "「おれはかつて海賊船長だった男だ」", "食べていない（ハートの海賊団）"]}
+    ]
+  },
+  {
+    "level": 9,
+    "characters": [
+      {"name": "コーギー", "name_hint": "〇〇〇〇", "hints": ["ウォーターセブン編で登場", "「クンクン…におうぞ!!」", "犬のような顔、黒い帽子、スーツ", "「悪党の匂いがする!!」", "食べていない（世界政府の役人）"]},
+      {"name": "サルデス", "name_hint": "〇〇〇〇", "hints": ["インペルダウン編で登場", "「ブルゴリ達よ、やっちまえ!!」", "小柄、悪魔のような角と羽、三又の槍を持っている", "「おれはサルデスだ!! サルではない!!」", "食べていない"]},
+      {"name": "テリー・ギルテオ", "name_hint": "〇〇〇⚪︎〇〇〇〇", "hints": ["革命軍の拠点（バルティゴなど）で登場", "「情報が入りました!!」", "カンガルーのような被り物、ゴーグル、通信機を背負う", "「ドラゴンさん!!」", "食べていない（革命軍情報管制官）"]},
+      {"name": "バニー・ジョー", "name_hint": "〇〇〇⚪︎〇⚪︎〇", "hints": ["テキーラウルフ編で登場", "「君を助けに来た」", "アフロヘアー、顎髭、革命軍の服", "「おれたちは革命軍だ」", "食べていない（ロビンを助けた）"]},
+      {"name": "ギャサリン", "name_hint": "〇⚪︎〇〇〇", "hints": ["エニエス・ロビー編で登場", "「ごめんなさい、ジャブラさん」", "眼鏡、パーマヘア、食堂の制服", "「私、ルッチさんが好きなの」", "食べていない"]},
+      {"name": "アタッチ", "name_hint": "〇〇⚪︎〇", "hints": ["手配書の写真（世界会議編などで姿判明）", "「シャッターチャンス!!」", "カメラを構えている、ヒゲ、燃えるような髪の毛", "「ファイア!!!」", "食べていない（海軍写真部）"]},
+      {"name": "ロンズ", "name_hint": "〇〇〇", "hints": ["頂上戦争編で登場", "「白ひげの首はもらった!!」", "巨人族、鉄の仮面、巨大な斧を持っている", "「うおおおお!!!（突撃）」", "食べていない（海軍中将）"]},
+      {"name": "マシカク", "name_hint": "〇〇〇〇", "hints": ["ローグタウン編で登場", "「スモーカー大佐!!」", "四角い顔、四角い体格、海軍の帽子", "「海賊が逃げます!!」", "食べていない（海軍軍曹）"]},
+      {"name": "ステリー", "name_hint": "〇〇〇〇", "hints": ["ルフィの過去編〜世界会議編で登場", "「ゴミ山なんて燃やせばいい」", "金髪の巻き毛、貴族の服、嫌味な顔", "「ぼくはゴア王国の王だぞ!!」", "食べていない（サボの義弟）"]},
+      {"name": "ブードル", "name_hint": "〇〇〇〇", "hints": ["東の海編で登場", "「ここはわしの町だ!!」", "鎧を着こんでいる、メガネ、頭の上が少しハゲている", "「町を壊されてたまるか!!!」", "食べていない（オレンジの町の町長）"]}
+    ]
+  },
+  {
+    "level": 10,
+    "characters": [
+      {"name": "パンダマン", "name_hint": "〇〇〇〇〇", "hints": ["ほぼ全編のどこかのコマで登場", "「たすけて〜」", "パンダの覆面、マッチョな体", "「笹食ってる場合じゃねェ！」", "食べていない"]},
+      {"name": "みなとともさん", "name_hint": "〇〇〇〇〇〇〇", "hints": ["フーシャ村の扉など（SBS・ワノ国編）", "「ワシが直したんじゃ」", "大工の頭巾、ノコギリ、法被", "「誰じゃ扉を壊したのは」", "食べていない（大工）"]},
+      {"name": "トマトギャング", "name_hint": "〇〇〇〇⚪︎〇〇", "hints": ["扉絵や群衆の中など（SBS）", "「パンダマン待て!!」", "頭がトマト、銃を持っている、借金取りのスーツ", "「金返せ!!」", "食べていない"]},
+      {"name": "サム", "name_hint": "〇〇", "hints": ["東の海編で登場", "「ヒック…」", "千鳥足、酒瓶を持っている、ほろ酔のオッサン", "「いい天気だなァ…」", "食べていない（アーロンパークへ向かう道にいた）"]},
+      {"name": "スペーシー中尉", "name_hint": "〇〇〇〇〇〇〇", "hints": ["扉絵連載（エネルのスペース大作戦）", "「ツキミ博士の仇!!」", "宇宙服、ウサギのような耳、カラクリ人形", "「宇宙海賊を許さない!!」", "食べていない"]},
+      {"name": "キャプテン・マッキンリー", "name_hint": "〇⚪︎〇〇〇⚪︎〇⚪︎〇〇〇〇", "hints": ["空島編で登場", "「不法入国です」", "ホワイトベレー帽、ふっくらした体型、這いつくばって移動する", "「神の裁きを受けなさい!!」", "食べていない（ホワイトベレー部隊隊長）"]},
+      {"name": "ミカヅキ", "name_hint": "〇〇〇〇", "hints": ["ウォーターセブン編で登場", "「俺は大カブト海賊団の船長だ!!」", "三日月の兜、派手なマント", "「ツケにしておけ!!」", "食べていない（ガレーラカンパニーに借金を踏み倒そうとした）"]},
+      {"name": "チュチューン", "name_hint": "〇⚪︎〇⚪︎〇〇", "hints": ["ロングリングロングランド編で登場", "「チュチュン!!」", "巨大な鳥、ゴーグル、背中に実況席を背負う", "「チュチュチュン!!」", "食べていない（フォクシー海賊団・イトミミズの愛鳥）"]},
+      {"name": "ドロフィー", "name_hint": "〇〇〇⚪︎〇", "hints": ["アラバスタ編で登場", "「アタシはミス・メリークリスマス!!」", "ペンギンみたいな体型、サングラス、ネクタイ", "「バカバカバカ!!!」", "モグモグの実（バロックワークスの本名）"]},
+      {"name": "ダズ・ボーネス", "name_hint": "〇〇⚪︎〇〇〇〇", "hints": ["アラバスタ編で登場", "「おれはMr.1だ」", "スキンヘッド、胸に「壱」の刺青、僧侶のような服", "「殺し屋に…なればよかったな」", "スパスパの実（バロックワークスの本名）"]}
+    ]
+  }
+];
 
-    async function loadGameData() {
-        try {
-            const [imagesRes, monstersRes, itemsRes, actionsRes, conditionsRes, eventsRes, userDataRes] = await Promise.all([
-                fetch('Images.json'), fetch('Monsters.json'), fetch('Items.json'), 
-                fetch('Actions.json'), fetch('Conditions.json'), fetch('Events.json'), fetch('UserData.json')
-            ]);
+// ゲーム状態変数
+let currentLevel = 1;
+let score = 100;
+let questions = [];
+let currentQuestionIndex = 0;
+let hintsUsed = 0;
+let isProcessing = false;
 
-            const rawImages = await imagesRes.json();
-            const rawConditions = await conditionsRes.json();
-            const rawEvents = await eventsRes.json();
-            
-            DB.Monsters = await monstersRes.json();
-            DB.Items = await itemsRes.json();
-            DB.Actions = await actionsRes.json();
-            let defaultUserData = await userDataRes.json();
+// 指定レベルの問題プールを取得してシャッフル
+function getQuestions(level) {
+    let targetLevels = [];
+    if (level === 1) targetLevels = [1, 2, 3, 4];
+    else if (level === 2) targetLevels = [4, 5, 6, 7];
+    else if (level === 3) targetLevels = [7, 8, 9, 10];
 
-            const savedData = localStorage.getItem(SAVE_KEY);
-            if (savedData) {
-                UserData = JSON.parse(savedData);
-                addLog("前回のセーブデータをロードしました。");
-            } else {
-                UserData = defaultUserData;
-                addLog("初期データでゲームを開始しました。");
-            }
-
-            DB.Images = {};
-            rawImages.forEach(img => { DB.Images[img.id] = img.path; });
-
-            DB.Conditions = {};
-            rawConditions.forEach(cond => {
-                DB.Conditions[cond.id] = {
-                    name: cond.name,
-                    mult: {
-                        gain: cond.effect_multiplier ? cond.effect_multiplier.training_gain : 1.0,
-                        fatigue_rate: cond.effect_multiplier ? cond.effect_multiplier.fatigue_rate : 1.0
-                    }
-                };
-            });
-
-            DB.Events = rawEvents.map(e => ({
-                id: e.id, name: e.name, trigger: e.trigger, prob: e.probability,
-                effects: e.effects || {}, force_condition: e.force_condition, reward: e.rewards ? e.rewards.item_id : null
-            }));
-
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'grid';
-            initGame();
-
-        } catch (error) {
-            console.error(error);
-            document.getElementById('loading-screen').innerText = "エラー：JSONファイルの読み込みに失敗しました。";
+    let pool = [];
+    onepieceData.forEach(data => {
+        if (targetLevels.includes(data.level)) {
+            pool = pool.concat(data.characters);
         }
+    });
+
+    // シャッフル
+    for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
     }
+    return pool.slice(0, 10);
+}
 
-    function saveGame() {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(UserData));
-        alert("セーブしました！"); addLog("手動セーブを実行しました。");
-    }
-    function resetSave() {
-        if(confirm("セーブデータを消去しますか？")) { localStorage.removeItem(SAVE_KEY); location.reload(); }
-    }
+// 画面切り替え
+function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
 
-    function addLog(msg) {
-        GameLogs.unshift(`> ${msg}`);
-        if(GameLogs.length > 50) GameLogs.pop();
-        const logArea = document.getElementById('system-log');
-        logArea.innerHTML = '';
-        GameLogs.forEach(m => { const div = document.createElement('div'); div.className = 'log-entry'; div.innerText = m; logArea.appendChild(div); });
-    }
+// ゲーム開始
+function startGame(level) {
+    currentLevel = level;
+    score = 100;
+    questions = getQuestions(level);
+    currentQuestionIndex = 0;
+    
+    document.getElementById('level-display').innerText = `Lv.${level}`;
+    switchScreen('quiz-screen');
+    renderQuestion();
+}
 
-    function openModal(modalId) {
-        if(modalId === 'modal-shop') renderShop();
-        if(modalId === 'modal-inventory') renderInventory();
-        if(modalId === 'modal-pokedex') renderPokedex();
-        document.getElementById(modalId).style.display = 'flex';
-    }
-    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+// 問題の描画
+function renderQuestion() {
+    isProcessing = false;
+    hintsUsed = 0;
+    const q = questions[currentQuestionIndex];
+    
+    document.getElementById('question-count').innerText = `${currentQuestionIndex + 1} / 10 問`;
+    updateScoreDisplay();
+    document.getElementById('name-hint').innerText = q.name_hint;
+    document.getElementById('hints-container').innerHTML = '';
+    document.getElementById('answer-input').value = '';
+    
+    const btnHint = document.getElementById('btn-hint');
+    btnHint.disabled = false;
+    btnHint.innerText = 'ヒント解放 (初回無料)';
+    document.getElementById('answer-input').focus();
+}
 
-    function updateMainUI() {
-        const breed = UserData.active_breeding;
-        document.getElementById('ui-money').innerText = UserData.player_status.money;
-
-        const isFinished = !breed.is_breeding;
-        document.querySelectorAll('#actions-container .btn').forEach(btn => { btn.disabled = isFinished; });
-
-        if (isFinished) {
-            document.getElementById('ui-monster-name').innerText = "育成終了（新しいタネを育てよう！）";
-            document.getElementById('ui-turns').innerText = "0";
-            return;
+// ヒントを使用
+function useHint() {
+    const q = questions[currentQuestionIndex];
+    if (hintsUsed < q.hints.length) {
+        if (hintsUsed > 0) {
+            score -= 5;
+            updateScoreDisplay();
         }
-
-        const params = breed.current_parameters;
-        document.getElementById('ui-turns').innerText = breed.remaining_actions;
-
-        const monster = DB.Monsters.find(m => m.id === breed.current_seed_id);
-        document.getElementById('ui-monster-name').innerText = monster.name;
-        document.getElementById('ui-monster-img').innerHTML = `<img src="${DB.Images[monster.image_id]}" alt="${monster.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
         
-        const cond = DB.Conditions[breed.current_condition_id];
-        document.getElementById('ui-condition').innerText = `コンディション: ${cond.name}`;
+        const hintsContainer = document.getElementById('hints-container');
+        const hintEl = document.createElement('div');
+        hintEl.className = 'hint-item';
+        hintEl.innerText = `ヒント ${hintsUsed + 1}: ${q.hints[hintsUsed]}`;
+        hintsContainer.appendChild(hintEl);
         
-        document.getElementById('ui-fatigue').innerText = Math.floor(breed.fatigue);
-        document.getElementById('ui-hp').innerText = Math.floor(params.hp);
-        document.getElementById('ui-atk').innerText = Math.floor(params.atk);
-        document.getElementById('ui-mag').innerText = Math.floor(params.mag);
-        document.getElementById('ui-def').innerText = Math.floor(params.def);
-        document.getElementById('ui-agi').innerText = Math.floor(params.agi);
-        // FITをLUKに変更
-        document.getElementById('ui-luk').innerText = Math.floor(params.luk); 
-    }
-
-    function renderShop() {
-        document.getElementById('shop-money').innerText = UserData.player_status.money;
-        let html = '';
-        DB.Items.forEach(item => {
-            const canBuy = UserData.player_status.money >= item.price;
-            html += `<div class="list-item"><div class="list-info"><h4>${item.name} (${item.price} G)</h4><p>${item.description}</p></div><button class="buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyItem('${item.id}', 'item', ${item.price})">購入</button></div>`;
-        });
-        DB.Monsters.filter(m => m.type === 'seed').forEach(seed => {
-            const canBuy = UserData.player_status.money >= seed.price;
-            html += `<div class="list-item"><img src="${DB.Images[seed.image_id]}"><div class="list-info"><h4>${seed.name} (${seed.price} G)</h4><p>${seed.description}</p></div><button class="buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyItem('${seed.id}', 'seed', ${seed.price})">購入</button></div>`;
-        });
-        document.getElementById('shop-list').innerHTML = html;
-    }
-
-    function buyItem(id, type, price) {
-        if (UserData.player_status.money < price) return;
-        UserData.player_status.money -= price;
-        if (type === 'item') {
-            let inv = UserData.inventory.find(i => i.item_id === id);
-            if (inv) inv.quantity++; else UserData.inventory.push({ item_id: id, quantity: 1 });
-            addLog(`ショップでアイテムを購入しました。`);
-        } else if (type === 'seed') {
-            let inv = UserData.seed_inventory.find(s => s.monster_id === id);
-            if (inv) inv.quantity++; else UserData.seed_inventory.push({ monster_id: id, quantity: 1 });
-            addLog(`ショップでタネを購入しました。`);
-        }
-        renderShop(); updateMainUI();
-    }
-
-    function renderInventory() {
-        let html = `<h3>所持アイテム</h3>`;
-        UserData.inventory.forEach(inv => {
-            if (inv.quantity > 0) {
-                const item = DB.Items.find(i => i.id === inv.item_id);
-                const canUse = UserData.active_breeding.is_breeding;
-                html += `<div class="list-item"><div class="list-info"><h4>${item.name} (所持: ${inv.quantity})</h4><p>${item.description}</p></div><button class="use-btn" ${canUse ? '' : 'disabled'} onclick="useItem('${item.id}')">使う</button></div>`;
-            }
-        });
-        html += `<h3 style="margin-top:20px;">所持しているタネ</h3>`;
-        UserData.seed_inventory.forEach(inv => {
-            if (inv.quantity > 0) {
-                const seed = DB.Monsters.find(m => m.id === inv.monster_id);
-                const canBreed = !UserData.active_breeding.is_breeding;
-                html += `<div class="list-item"><img src="${DB.Images[seed.image_id]}"><div class="list-info"><h4>${seed.name} (所持: ${inv.quantity})</h4></div><button class="use-btn" style="background:#e67e22;" ${canBreed ? '' : 'disabled'} onclick="startBreeding('${seed.id}')">育てる</button></div>`;
-            }
-        });
-        document.getElementById('inventory-list').innerHTML = html;
-    }
-
-    function useItem(itemId) {
-        if (!UserData.active_breeding.is_breeding) return;
-        let invItem = UserData.inventory.find(i => i.item_id === itemId);
-        if (!invItem || invItem.quantity <= 0) return;
-
-        const item = DB.Items.find(i => i.id === itemId);
-        invItem.quantity--;
-        addLog(`💊 アイテム使用: 【${item.name}】`);
-
-        const breed = UserData.active_breeding;
-        switch (item.effect_type) {
-            case "training_boost": case "rest_boost": breed.active_buffs = [{ item_id: itemId, turns_left: 1 }]; break;
-            case "action_increase": breed.remaining_actions += item.effect_value; break;
-            case "heal_fatigue": breed.fatigue = Math.max(0, breed.fatigue - item.effect_value); break;
-            case "heal_condition": breed.current_condition_id = item.effect_value; break;
-        }
-        renderInventory(); updateMainUI();
-    }
-
-    function startBreeding(seedId) {
-        let invSeed = UserData.seed_inventory.find(s => s.monster_id === seedId);
-        if (!invSeed || invSeed.quantity <= 0) return;
-        invSeed.quantity--;
+        hintsUsed++;
         
-        UserData.active_breeding = {
-            is_breeding: true,
-            current_seed_id: seedId,
-            remaining_actions: 90,
-            current_condition_id: "cond_001",
-            fatigue: 0,
-            // lukに変更
-            current_parameters: { hp: 100, atk: 10, mag: 10, def: 10, agi: 10, luk: 10 },
-            active_buffs: []
-        };
-        if(!UserData.monster_book.includes(seedId)) UserData.monster_book.push(seedId);
-        addLog(`🌱 新しい育成を開始しました！`);
-        closeModal('modal-inventory'); updateMainUI();
-    }
-
-    function renderPokedex() {
-        let html = '';
-        DB.Monsters.forEach(m => {
-            const isUnlocked = UserData.monster_book.includes(m.id);
-            const cardClass = isUnlocked ? 'pokedex-card' : 'pokedex-card locked';
-            html += `<div class="${cardClass}"><img src="${DB.Images[m.image_id]}"><h4>${isUnlocked ? m.name : '???'}</h4></div>`;
-        });
-        document.getElementById('pokedex-grid').innerHTML = html;
-    }
-
-    function performAction(actionId) {
-        const breed = UserData.active_breeding;
-        if (!breed.is_breeding || breed.remaining_actions <= 0) return;
-
-        const action = DB.Actions.find(a => a.id === actionId);
-        const cond = DB.Conditions[breed.current_condition_id];
-        addLog(`行動: 【${action.name}】`);
-
-        let hpChange = action.effects.hp || 0;
-        let atkChange = action.effects.atk || 0;
-        let magChange = action.effects.mag || 0;
-        let defChange = action.effects.def || 0;
-        let agiChange = action.effects.agi || 0;
-        let lukChange = action.effects.luk || 0; // fitからlukに変更
-        let fatigueChange = action.effects.fatigue || 0;
-
-        if (fatigueChange > 0) fatigueChange *= cond.mult.fatigue_rate;
-        if (atkChange > 0) atkChange *= cond.mult.gain;
-        if (magChange > 0) magChange *= cond.mult.gain;
-        if (defChange > 0) defChange *= cond.mult.gain;
-        if (agiChange > 0) agiChange *= cond.mult.gain;
-        if (lukChange > 0) lukChange *= cond.mult.gain;
-
-        let activeBuff = breed.active_buffs.find(b => b.turns_left > 0);
-        if (activeBuff) {
-            const buffItem = DB.Items.find(i => i.id === activeBuff.item_id);
-            if (action.type === 'training' && buffItem.effect_type === 'training_boost') {
-                atkChange *= buffItem.effect_value; magChange *= buffItem.effect_value;
-                defChange *= buffItem.effect_value; agiChange *= buffItem.effect_value; lukChange *= buffItem.effect_value;
-            } else if (action.type === 'rest' && buffItem.effect_type === 'rest_boost') {
-                fatigueChange *= buffItem.effect_value;
-            }
-            activeBuff.turns_left--;
-            if (activeBuff.turns_left <= 0) breed.active_buffs = [];
-        }
-
-        breed.current_parameters.hp += hpChange;
-        breed.current_parameters.atk += atkChange;
-        breed.current_parameters.mag += magChange;
-        breed.current_parameters.def += defChange;
-        breed.current_parameters.agi += agiChange;
-        breed.current_parameters.luk += lukChange;
-        breed.fatigue = Math.max(0, breed.fatigue + fatigueChange);
-
-        if (action.effects.force_condition) breed.current_condition_id = action.effects.force_condition;
-
-        if (breed.fatigue >= 100 && breed.current_condition_id !== "cond_005") {
-            breed.fatigue = 100;
-            breed.current_condition_id = "cond_005";
-            addLog("⚠️ 疲労が限界に達し、「ケガ」をしてしまった！");
-        }
-
-        DB.Events.forEach(evt => {
-            if (evt.trigger === action.type && Math.random() < evt.prob) {
-                addLog(`✨ イベント発生: ${evt.name}`);
-                if (evt.effects) {
-                    breed.current_parameters.hp += (evt.effects.hp || 0);
-                    breed.current_parameters.atk += (evt.effects.atk || 0);
-                    breed.current_parameters.mag += (evt.effects.mag || 0);
-                    breed.current_parameters.def += (evt.effects.def || 0);
-                    breed.current_parameters.agi += (evt.effects.agi || 0);
-                    breed.current_parameters.luk += (evt.effects.luk || 0); // lukに変更
-                }
-                if (evt.force_condition) breed.current_condition_id = evt.force_condition;
-                if (evt.reward) {
-                    let inv = UserData.inventory.find(i => i.item_id === evt.reward);
-                    if (inv) inv.quantity++; else UserData.inventory.push({ item_id: evt.reward, quantity: 1 });
-                }
-            }
-        });
-
-        breed.remaining_actions--;
-        if (breed.remaining_actions <= 0) checkEvolution();
-
-        updateMainUI();
-    }
-
-    function checkEvolution() {
-        const breed = UserData.active_breeding;
-        const p = breed.current_parameters;
-        addLog("🌟 進化の時です...");
-
-        let evolvedId = breed.current_seed_id;
-        for (let i = DB.Monsters.length - 1; i >= 0; i--) {
-            const mon = DB.Monsters[i];
-            if (mon.type === 'evolved' && mon.evolution_conditions.base_seed_ids.includes(breed.current_seed_id)) {
-                const c = mon.evolution_conditions;
-                // luk判定に変更
-                if (p.hp >= (c.min_hp||0) && p.atk >= (c.min_atk||0) && p.mag >= (c.min_mag||0) && p.def >= (c.min_def||0) && p.agi >= (c.min_agi||0) && p.luk >= (c.min_luk||0)) {
-                    evolvedId = mon.id; break;
-                }
-            }
-        }
-
-        const newMonster = DB.Monsters.find(m => m.id === evolvedId);
-        breed.current_seed_id = evolvedId;
-        breed.is_breeding = false;
-
-        if (newMonster.type === 'evolved') {
-            addLog(`🎉 【${newMonster.name}】に進化！ (報酬: 3000G)`);
-            UserData.player_status.money += 3000;
+        const btnHint = document.getElementById('btn-hint');
+        if (hintsUsed >= q.hints.length) {
+            btnHint.disabled = true;
+            btnHint.innerText = 'ヒントなし';
         } else {
-            addLog(`そのままの姿で育成を終えました。`);
+            btnHint.innerText = `ヒント解放 (-5pt)`;
         }
+    }
+}
 
-        if(!UserData.monster_book.includes(evolvedId)) UserData.monster_book.push(evolvedId);
-        localStorage.setItem(SAVE_KEY, JSON.stringify(UserData));
+// スコア表示更新
+function updateScoreDisplay() {
+    document.getElementById('score-display').innerText = score;
+}
+
+// 文字列の正規化（比較用）
+function normalizeString(str) {
+    return str.normalize('NFKC')
+              .replace(/[\u30a1-\u30f6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60)) // カタカナをひらがなに
+              .replace(/[・\s　＝=,，、]/g, '') // 記号と空白を削除
+              .toLowerCase();
+}
+
+// 回答チェック
+function checkAnswer() {
+    if (isProcessing) return;
+    const input = document.getElementById('answer-input').value.trim();
+    if (!input) return;
+
+    isProcessing = true;
+    const q = questions[currentQuestionIndex];
+    const isCorrect = normalizeString(input) === normalizeString(q.name);
+
+    if (isCorrect) {
+        showFeedback('正解！', 'correct');
+    } else {
+        score -= 10; // 不正解ペナルティ（仕様上指定がないため-10と設定）
+        updateScoreDisplay();
+        showFeedback('不正解…', 'incorrect');
     }
 
-    function initGame() {
-        const actContainer = document.getElementById('actions-container');
-        DB.Actions.forEach(act => {
-            const btn = document.createElement('button');
-            btn.className = 'btn'; btn.innerText = act.name;
-            btn.onclick = () => performAction(act.id);
-            actContainer.appendChild(btn);
-        });
-        updateMainUI();
-    }
+    setTimeout(() => {
+        proceedNext();
+    }, 1200);
+}
 
-    window.onload = loadGameData;
+// スキップ
+function skipQuestion() {
+    if (isProcessing) return;
+    isProcessing = true;
+    score -= 25;
+    updateScoreDisplay();
+    showFeedback('スキップ', 'skipped');
+    
+    setTimeout(() => {
+        proceedNext();
+    }, 1200);
+}
+
+// 次の問題へ
+function proceedNext() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+        renderQuestion();
+    } else {
+        finishGame();
+    }
+}
+
+// フィードバック表示
+function showFeedback(text, className) {
+    const feedback = document.getElementById('feedback');
+    feedback.innerText = text;
+    feedback.className = className + ' show';
+    setTimeout(() => {
+        feedback.classList.remove('show');
+    }, 1000);
+}
+
+// Enterキー対応
+function handleEnter(e) {
+    if (e.key === 'Enter') {
+        checkAnswer();
+    }
+}
+
+// ランク判定
+function getRankInfo(finalScore) {
+    if (finalScore >= 90) return { rank: "ONE PIECE 博士", comment: "素晴らしい！この海の覇者だ！" };
+    if (finalScore >= 70) return { rank: "ONE PIECE マニア", comment: "かなりの猛者だな！" };
+    if (finalScore >= 40) return { rank: "ONE PIECE 中級者", comment: "まだまだ上を目指せるぞ！" };
+    if (finalScore >= 0)  return { rank: "ONE PIECE 初級者", comment: "冒険は始まったばかりだ！" };
+    return { rank: "ONE PIECE 素人", comment: "出直してきな！" };
+}
+
+// ゲーム終了
+function finishGame() {
+    const rankInfo = getRankInfo(score);
+    document.getElementById('result-level').innerText = `レベル ${currentLevel} 結果`;
+    document.getElementById('final-score').innerText = score;
+    document.getElementById('final-rank').innerText = rankInfo.rank;
+    document.getElementById('final-comment').innerText = rankInfo.comment;
+    
+    // 記録保存
+    saveRecord(currentLevel, score);
+    
+    switchScreen('result-screen');
+}
+
+// 記録保存
+function saveRecord(level, newScore) {
+    const key = `op_quiz_lv${level}`;
+    const currentMax = localStorage.getItem(key);
+    if (currentMax === null || newScore > parseInt(currentMax)) {
+        localStorage.setItem(key, newScore);
+    }
+}
+
+// 記録画面表示
+function showRecords() {
+    document.getElementById('rec-lv1').innerText = (localStorage.getItem('op_quiz_lv1') || '-') + ' pt';
+    document.getElementById('rec-lv2').innerText = (localStorage.getItem('op_quiz_lv2') || '-') + ' pt';
+    document.getElementById('rec-lv3').innerText = (localStorage.getItem('op_quiz_lv3') || '-') + ' pt';
+    switchScreen('record-screen');
+}
+
+// ホームへ
+function showHome() {
+    switchScreen('home-screen');
+}
+
 </script>
-
 </body>
 </html>
