@@ -1,7 +1,0 @@
-[
-  { "id": "evt_001", "name": "大成功！", "trigger": "training", "probability": 0.10, "effects": { "atk": 10, "agi": 10 } },
-  { "id": "evt_002", "name": "足をつまづいた", "trigger": "training", "probability": 0.05, "force_condition": "cond_004" },
-  { "id": "evt_003", "name": "迷子の商人", "trigger": "rest", "probability": 0.10, "rewards": { "item_id": "item_001" } },
-  { "id": "evt_004", "name": "ぐっすり熟睡", "trigger": "rest", "probability": 0.15, "force_condition": "cond_003" },
-  { "id": "evt_005", "name": "突然のひらめき", "trigger": "training", "probability": 0.03, "effects": { "hp": 20, "atk": 20, "mag": 20, "def": 20, "agi": 20, "luk": 20 } }
-]
