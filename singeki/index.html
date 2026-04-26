@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>進撃の巨人 クイズ</title>
+<style>
+    :root {
+        /* 進撃の巨人らしい重厚感のあるカラーパレット */
+        --bg-color: #1a1a1a;
+        --poster-bg: #e8e3d8; /* 羊皮紙・壁のような色 */
+        --border-color: #4a3b32; /* 革や木材を思わせる茶色 */
+        --text-color: #2b1d14;
+        --btn-color: #2d4a35; /* 調査兵団のマントの緑 */
+        --btn-hover: #3d6348;
+        --accent-color: #8b0000; /* 血や決意を示す赤 */
+    }
+    
+    body {
+        font-family: 'ヒラギノ明朝 ProN', 'Hiragino Mincho ProN', '游明朝', YuMincho, 'Noto Serif JP', serif;
+        background-color: var(--bg-color);
+        background-image: 
+            linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.1"/></svg>');
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text-color);
+    }
+
+    #app {
+        width: 100%;
+        max-width: 600px;
+        background-color: var(--poster-bg);
+        border: 10px solid var(--border-color);
+        border-style: double;
+        border-radius: 4px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.8), inset 0 0 50px rgba(0,0,0,0.1);
+        padding: 30px 20px;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .screen {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .screen.active {
+        display: flex;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    h1 {
+        font-size: 2.8em;
+        text-align: center;
+        margin: 0 0 20px 0;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 15px;
+        letter-spacing: 4px;
+        font-weight: bold;
+        line-height: 1.2;
+    }
+
+    h2 {
+        font-size: 1.4em;
+        margin-bottom: 20px;
+        text-align: center;
+        letter-spacing: 2px;
+    }
+
+    button {
+        background-color: var(--btn-color);
+        color: #f4f1ea;
+        border: 2px solid #1a2c1f;
+        padding: 12px 20px;
+        font-size: 1.1em;
+        font-family: inherit;
+        border-radius: 3px;
+        cursor: pointer;
+        margin: 8px;
+        width: 85%;
+        max-width: 320px;
+        transition: background-color 0.2s, transform 0.1s;
+        box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+        letter-spacing: 1px;
+    }
+
+    button:hover {
+        background-color: var(--btn-hover);
+    }
+
+    button:active {
+        transform: translateY(2px);
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    }
+
+    button:disabled {
+        background-color: #7a7a7a;
+        cursor: not-allowed;
+        border-color: #444;
+        box-shadow: none;
+        transform: none;
+    }
+
+    .btn-return { background-color: #4a4a4a; border-color: #222; }
+    .btn-return:hover { background-color: #5a5a5a; }
+    
+    .btn-record { background-color: var(--border-color); border-color: #2b1d14; }
+    .btn-record:hover { background-color: #5c4a3d; }
+
+    /* クイズ画面用スタイル */
+    .header-info {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    .pt-display {
+        color: var(--accent-color);
+    }
+
+    #question-text-4c {
+        font-size: 1.25em;
+        margin: 20px 0 30px 0;
+        text-align: center;
+        min-height: 80px;
+        font-weight: bold;
+        width: 95%;
+        line-height: 1.6;
+    }
+
+    .options-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+    }
+
+    .option-btn {
+        width: 100%;
+        max-width: 400px;
+        margin: 6px;
+        font-size: 1.05em;
+        padding: 15px;
+        text-align: left;
+        background-color: #f4f1ea;
+        color: var(--text-color);
+        border: 2px solid var(--border-color);
+        border-radius: 5px;
+        box-shadow: 1px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .option-btn:hover:not(:disabled) {
+        background-color: #e5dfd3;
+        color: var(--text-color);
+    }
+
+    /* レベル選択グリッド */
+    .level-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        width: 90%;
+        max-width: 400px;
+        margin-bottom: 20px;
+    }
+    
+    .level-grid button {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* 結果画面用スタイル */
+    .result-score {
+        font-size: 4em;
+        color: var(--accent-color);
+        font-weight: bold;
+        margin: 10px 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .result-rank {
+        font-size: 2em;
+        font-weight: bold;
+        margin: 15px 0;
+        color: var(--btn-color);
+    }
+
+    .result-comment {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        text-align: center;
+        padding: 0 20px;
+        line-height: 1.5;
+    }
+
+    /* 記録画面用スタイル */
+    .record-table-container {
+        width: 90%;
+        max-height: 350px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+    }
+
+    .record-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .record-table th, .record-table td {
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        text-align: center;
+        font-size: 1.1em;
+    }
+    
+    .record-table th {
+        background-color: rgba(74, 59, 50, 0.1);
+        position: sticky;
+        top: 0;
+    }
+
+    /* フィードバックアニメーション */
+    #feedback {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 5em;
+        font-weight: bold;
+        z-index: 10;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.6);
+        pointer-events: none;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #feedback.show {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .correct { color: #4CAF50; }
+    .incorrect { color: #F44336; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+
+<div id="app">
+    <div id="home-screen" class="screen active">
+        <h1>進撃の巨人<br><span style="font-size: 0.5em; color: var(--btn-color);">100問クイズ</span></h1>
+        <h2>心臓を捧げる覚悟はあるか</h2>
+        <button onclick="switchScreen('level-select-screen')">作戦を開始する (クイズへ)</button>
+        <div style="height: 15px;"></div>
+        <button class="btn-record" onclick="showRecords()">戦歴を見る (最高記録)</button>
+        <div style="height: 15px;"></div>
+        <button class="btn-return" onclick="window.location.href='../index.html'">アニメ選択へ戻る</button>
+    </div>
+
+    <div id="level-select-screen" class="screen">
+        <h1>作戦難易度</h1>
+        <h2>挑戦するレベルを選択せよ</h2>
+        <div class="level-grid">
+            <button onclick="start4ChoiceGame(1)">レベル 1</button>
+            <button onclick="start4ChoiceGame(2)">レベル 2</button>
+            <button onclick="start4ChoiceGame(3)">レベル 3</button>
+            <button onclick="start4ChoiceGame(4)">レベル 4</button>
+            <button onclick="start4ChoiceGame(5)">レベル 5</button>
+            <button onclick="start4ChoiceGame(6)">レベル 6</button>
+            <button onclick="start4ChoiceGame(7)">レベル 7</button>
+            <button onclick="start4ChoiceGame(8)">レベル 8</button>
+            <button onclick="start4ChoiceGame(9)">レベル 9</button>
+            <button onclick="start4ChoiceGame(10)">レベル 10</button>
+        </div>
+        <button class="btn-record" onclick="showHome()">ホームに戻る</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="header-info">
+            <span id="level-display">Lv.1</span>
+            <span id="question-count">1 / 10 問</span>
+            <span class="pt-display">体力: <span id="score-display">100</span></span>
+        </div>
+        <div id="question-text-4c">ここに問題文が表示されます</div>
+        
+        <div class="options-container">
+            <button id="btn-opt-A" class="option-btn" onclick="checkAnswer('A')">選択肢A</button>
+            <button id="btn-opt-B" class="option-btn" onclick="checkAnswer('B')">選択肢B</button>
+            <button id="btn-opt-C" class="option-btn" onclick="checkAnswer('C')">選択肢C</button>
+            <button id="btn-opt-D" class="option-btn" onclick="checkAnswer('D')">選択肢D</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2 id="result-level">レベル 1 帰還報告</h2>
+        <div>残り体力</div>
+        <div id="final-score" class="result-score">100</div>
+        <div id="final-rank" class="result-rank">調査兵団 団長</div>
+        <div id="final-comment" class="result-comment">人類の希望となる素晴らしい成果だ！</div>
+        <button onclick="switchScreen('level-select-screen')">別のレベルに挑む</button>
+        <button class="btn-record" onclick="showHome()">ホームに戻る</button>
+    </div>
+
+    <div id="record-screen" class="screen">
+        <h1>戦歴（自己最高記録）</h1>
+        <div class="record-table-container">
+            <table class="record-table">
+                <tr><th>レベル 1</th><td id="rec-lv1">-</td></tr>
+                <tr><th>レベル 2</th><td id="rec-lv2">-</td></tr>
+                <tr><th>レベル 3</th><td id="rec-lv3">-</td></tr>
+                <tr><th>レベル 4</th><td id="rec-lv4">-</td></tr>
+                <tr><th>レベル 5</th><td id="rec-lv5">-</td></tr>
+                <tr><th>レベル 6</th><td id="rec-lv6">-</td></tr>
+                <tr><th>レベル 7</th><td id="rec-lv7">-</td></tr>
+                <tr><th>レベル 8</th><td id="rec-lv8">-</td></tr>
+                <tr><th>レベル 9</th><td id="rec-lv9">-</td></tr>
+                <tr><th>レベル 10</th><td id="rec-lv10">-</td></tr>
+            </table>
+        </div>
+        <button class="btn-record" onclick="showHome()">ホームに戻る</button>
+    </div>
+
+    <div id="feedback"></div>
+</div>
+
+<script>
+// ==================== クイズデータ (進撃の巨人 1〜100問) ====================
+const aotQuizData = [
+  {
+    "level": 1,
+    "questions": [
+      { "id": "Q1", "question": "主人公・エレンの名字はどれ？", "options": { "A": "イェーガー", "B": "アルレルト", "C": "アッカーマン", "D": "スミス" }, "answer": "A" },
+      { "id": "Q2", "question": "人類の生活圏を囲む3つの壁のうち、一番外側にある壁の名前は？", "options": { "A": "ウォール・ローゼ", "B": "ウォール・シーナ", "C": "ウォール・マリア", "D": "ウォール・タイバー" }, "answer": "C" },
+      { "id": "Q3", "question": "超大型巨人の身長はおよそ何メートル？", "options": { "A": "15メートル", "B": "50メートル", "C": "120メートル", "D": "60メートル" }, "answer": "D" },
+      { "id": "Q4", "question": "ミカサがいつも首に巻いているマフラーの色は？", "options": { "A": "黒", "B": "赤", "C": "白", "D": "青" }, "answer": "B" },
+      { "id": "Q5", "question": "アルミンの夢は、何を見ること？", "options": { "A": "海", "B": "山", "C": "森", "D": "宇宙" }, "answer": "A" },
+      { "id": "Q6", "question": "エレン達が所属した訓練兵団は何期？", "options": { "A": "第100期", "B": "第104期", "C": "第105期", "D": "第110期" }, "answer": "B" },
+      { "id": "Q7", "question": "調査兵団の団長（物語開始時）は誰？", "options": { "A": "リヴァイ", "B": "ハンジ・ゾエ", "C": "キース・シャーディス", "D": "エルヴィン・スミス" }, "answer": "D" },
+      { "id": "Q8", "question": "「人類最強の兵士」と呼ばれるのは誰？", "options": { "A": "エレン", "B": "ライナー", "C": "リヴァイ", "D": "ミカサ" }, "answer": "C" },
+      { "id": "Q9", "question": "芋を食べて教官に怒られたキャラクターは？", "options": { "A": "サシャ・ブラウス", "B": "コニー・スプリンガー", "C": "ジャン・キルシュタイン", "D": "クリスタ・レンズ" }, "answer": "A" },
+      { "id": "Q10", "question": "兵士が立体機動装置で移動する際に使用するガスは？", "options": { "A": "天然ガス", "B": "氷爆石から作られるガス", "C": "水素ガス", "D": "窒素ガス" }, "answer": "B" }
+    ]
+  },
+  {
+    "level": 2,
+    "questions": [
+      { "id": "Q11", "question": "エレンが巨人化する能力に目覚めたのは、誰に食べられた時？", "options": { "A": "超大型巨人", "B": "鎧の巨人", "C": "髭の生えた巨人", "D": "女型の巨人" }, "answer": "C" },
+      { "id": "Q12", "question": "ジャンの好物は何？", "options": { "A": "オムライス", "B": "肉", "C": "パン", "D": "魚" }, "answer": "A" },
+      { "id": "Q13", "question": "アニ・レオンハートが得意とする格闘術の構えの特徴は？", "options": { "A": "パンチ主体", "B": "投げ技主体", "C": "武器を使った戦い", "D": "独特の蹴り技" }, "answer": "D" },
+      { "id": "Q14", "question": "女型の巨人が結晶化して眠りについた場所は？", "options": { "A": "壁の中", "B": "地下室", "C": "森の中", "D": "海の中" }, "answer": "B" },
+      { "id": "Q15", "question": "リヴァイの過去を描いたスピンオフ作品のタイトルは？", "options": { "A": "Before the fall", "B": "悔いなき選択", "C": "Lost Girls", "D": "進撃！巨人中学校" }, "answer": "B" },
+      { "id": "Q16", "question": "ハンジが捕獲した2体の巨人の名前はソニーと何？", "options": { "A": "ジョン", "B": "マイケル", "C": "ビーン", "D": "ポール" }, "answer": "C" },
+      { "id": "Q17", "question": "駐屯兵団の司令官で、酒好きなのは誰？", "options": { "A": "ドット・ピクシス", "B": "ナイル・ドーク", "C": "キッツ・ヴェールマン", "D": "イアン・ディートリッヒ" }, "answer": "A" },
+      { "id": "Q18", "question": "エレンの父親の職業は？", "options": { "A": "兵士", "B": "商人", "C": "医者", "D": "教師" }, "answer": "C" },
+      { "id": "Q19", "question": "ユミルが大切に思っている人物は？", "options": { "A": "サシャ", "B": "クリスタ（ヒストリア）", "C": "ミカサ", "D": "アニ" }, "answer": "B" },
+      { "id": "Q20", "question": "ウトガルド城跡での戦いで最後まで生き残ったのは？", "options": { "A": "ゲルガー", "B": "ナナバ", "C": "リーネ", "D": "ユミル" }, "answer": "D" }
+    ]
+  },
+  {
+    "level": 3,
+    "questions": [
+      { "id": "Q21", "question": "ライナー・ブラウンが持つ巨人の名前は？", "options": { "A": "超大型巨人", "B": "鎧の巨人", "C": "顎の巨人", "D": "車力の巨人" }, "answer": "B" },
+      { "id": "Q22", "question": "獣の巨人の正体であるジークは、エレンとどのような関係？", "options": { "A": "異母兄弟", "B": "叔父", "C": "従兄弟", "D": "赤の他人" }, "answer": "A" },
+      { "id": "Q23", "question": "ケニー・アッカーマンの異名は？", "options": { "A": "首狩りケニー", "B": "血まみれケニー", "C": "切り裂きケニー", "D": "死神ケニー" }, "answer": "C" },
+      { "id": "Q24", "question": "ヒストリア・レイスの本当の血筋は？", "options": { "A": "アッカーマン家", "B": "タイバー家", "C": "壁の真の王家", "D": "東洋の末裔" }, "answer": "C" },
+      { "id": "Q25", "question": "エレン達が海に辿り着いたのは、物語の何年後？", "options": { "A": "訓練兵団卒業直後", "B": "ウォール・マリア奪還から約1年後", "C": "トロスト区奪還から3年後", "D": "物語開始から10年後" }, "answer": "B" },
+      { "id": "Q26", "question": "マーレ編の主人公的存在である、戦士候補生の少年は？", "options": { "A": "コルト", "B": "ファルコ", "C": "ウド", "D": "ゾフィア" }, "answer": "B" },
+      { "id": "Q27", "question": "ガビ・ブラウンはライナーの何にあたる？", "options": { "A": "妹", "B": "姪", "C": "従妹", "D": "姉" }, "answer": "C" },
+      { "id": "Q28", "question": "戦鎚の巨人を保有していたマーレの貴族は？", "options": { "A": "タイバー家", "B": "フリッツ家", "C": "レイス家", "D": "アズマビト家" }, "answer": "A" },
+      { "id": "Q29", "question": "ピーク・フィンガーが継承している巨人は？", "options": { "A": "顎の巨人", "B": "車力の巨人", "C": "女型の巨人", "D": "獣の巨人" }, "answer": "B" },
+      { "id": "Q30", "question": "サシャを撃ったマーレの戦士候補生は誰？", "options": { "A": "ファルコ", "B": "ピーク", "C": "ポルコ", "D": "ガビ" }, "answer": "D" }
+    ]
+  },
+  {
+    "level": 4,
+    "questions": [
+      { "id": "Q31", "question": "エレンが単独でマーレに潜入した際、名乗っていた偽名は？", "options": { "A": "イェーガー", "B": "スミス", "C": "クルーガー", "D": "レオンハート" }, "answer": "C" },
+      { "id": "Q32", "question": "ジークの目的である「エルディア人安楽死計画」とは？", "options": { "A": "エルディア人を全員即座に殺害する", "B": "始祖の力でエルディア人が子供を作れない体にする", "C": "エルディア人を巨人に変えてマーレを滅ぼす", "D": "全て記憶喪失にして平和に暮らす" }, "answer": "B" },
+      { "id": "Q33", "question": "「道」の中心にいる少女は誰？", "options": { "A": "ヒストリア", "B": "ダイナ", "C": "フリーダ", "D": "始祖ユミル" }, "answer": "D" },
+      { "id": "Q34", "question": "フロック・フォルスターがリーダーを務める過激派組織の名前は？", "options": { "A": "イェーガー派", "B": "エルディア復権派", "C": "反マーレ義勇兵", "D": "調査兵団残党" }, "answer": "A" },
+      { "id": "Q35", "question": "「地鳴らし」を発動させるためにエレンが必要だった接触相手は？", "options": { "A": "九つの巨人の全ての継承者", "B": "王家の血を引く巨人", "C": "アッカーマン一族", "D": "純無垢の巨人100体" }, "answer": "B" },
+      { "id": "Q36", "question": "スピンオフ「Before the fall」の主人公の名前は？", "options": { "A": "アンヘル", "B": "カルロ", "C": "キュクロ", "D": "シャルル" }, "answer": "C" },
+      { "id": "Q37", "question": "「Before the fall」で立体機動装置の原型を開発した職人は？", "options": { "A": "ゼノフォン", "B": "アンヘル・アールトネン", "C": "ホルヘ", "D": "キュクロ" }, "answer": "B" },
+      { "id": "Q38", "question": "「Before the fall」の物語は、エレンたちの時代からおよそ何年前？", "options": { "A": "約70年前", "B": "約100年前", "C": "約10年前", "D": "約200年前" }, "answer": "A" },
+      { "id": "Q39", "question": "「Before the fall」で、キュクロを虐待していた富豪の息子の名前は？", "options": { "A": "グロリア", "B": "カルロ", "C": "シャビィ", "D": "マリア" }, "answer": "C" },
+      { "id": "Q40", "question": "「Before the fall」で立体機動装置に使われる特殊な竹の名前は？", "options": { "A": "鋼鉄竹", "B": "巨人竹", "C": "氷爆竹", "D": "黒金竹" }, "answer": "D" }
+    ]
+  },
+  {
+    "level": 5,
+    "questions": [
+      { "id": "Q41", "question": "エレンの持つ「進撃の巨人」の特殊能力とは？", "options": { "A": "他の巨人を操ることができる", "B": "未来の継承者の記憶を見ることができる", "C": "体の一部を硬質化できる", "D": "空を飛ぶことができる" }, "answer": "B" },
+      { "id": "Q42", "question": "地鳴らしで進行する超大型巨人の群れは、およそ何体いると言われている？", "options": { "A": "数十万体", "B": "数千体", "C": "数千万体", "D": "数百体" }, "answer": "C" },
+      { "id": "Q43", "question": "オニャンコポンは何の技術の専門家？", "options": { "A": "医療技術", "B": "飛行船の操縦", "C": "爆薬の調合", "D": "巨人の生態研究" }, "answer": "B" },
+      { "id": "Q44", "question": "ミカサの母方の祖先が属していたとされる国は？", "options": { "A": "マーレ国", "B": "中東連合", "C": "ヒィズル国", "D": "エルディア帝国" }, "answer": "C" },
+      { "id": "Q45", "question": "イェレナが心酔している人物は誰？", "options": { "A": "ジーク・イェーガー", "B": "エレン・イェーガー", "C": "エルヴィン・スミス", "D": "ウィリー・タイバー" }, "answer": "A" },
+      { "id": "Q46", "question": "「Before the fall」で、キュクロが初めて外壁の外に出た目的は？", "options": { "A": "宝探しのため", "B": "調査兵団に入団するため", "C": "親を探すため", "D": "自分が巨人ではないと証明するため" }, "answer": "D" },
+      { "id": "Q47", "question": "本編で、コニーの母親が巨人にされた際に発した言葉は？", "options": { "A": "タスケテ", "B": "オカエリ", "C": "ニゲテ", "D": "ゴメンネ" }, "answer": "B" },
+      { "id": "Q48", "question": "マルコが死の間際に言ったセリフは「まだ…」何？", "options": { "A": "やりたいことがあったのに", "B": "ちゃんと話し合ってないじゃないか", "C": "みんなに会いたい", "D": "何もわかっていないのに" }, "answer": "B" },
+      { "id": "Q49", "question": "エルヴィンがリヴァイに託した、最後に下した命令は？", "options": { "A": "地下室へ行け", "B": "エレンを守れ", "C": "獣の巨人を討ち取れ", "D": "撤退しろ" }, "answer": "C" },
+      { "id": "Q50", "question": "ハンジが目を負傷したのはどの戦い？", "options": { "A": "トロスト区防衛戦", "B": "ストヘス区急襲", "C": "シガンシナ区決戦", "D": "レイス家礼拝堂の戦い" }, "answer": "C" }
+    ]
+  },
+  {
+    "level": 6,
+    "questions": [
+      { "id": "Q51", "question": "始祖ユミルが巨人の力を得たきっかけは、何に接触したこと？", "options": { "A": "謎の光るムカデのような生物", "B": "悪魔の契約書", "C": "宇宙からの隕石", "D": "特別な果実" }, "answer": "A" },
+      { "id": "Q52", "question": "天と地の戦いで、ミカサがエレンの首を刎ねた後に行ったことは？", "options": { "A": "海に投げ捨てた", "B": "アルミンに渡した", "C": "その場で埋葬した", "D": "首にキスをした" }, "answer": "D" },
+      { "id": "Q53", "question": "「進撃の巨人」というタイトルの本当の意味が明らかになるのは何巻？", "options": { "A": "10巻", "B": "22巻", "C": "15巻", "D": "30巻" }, "answer": "B" },
+      { "id": "Q54", "question": "ファルコの顎の巨人が持つ、歴代の顎の巨人にはない特徴は？", "options": { "A": "火を吹ける", "B": "透明になれる", "C": "空を飛べる", "D": "分身できる" }, "answer": "C" },
+      { "id": "Q55", "question": "グリシャの前の「進撃の巨人」継承者は誰？", "options": { "A": "カール・フリッツ", "B": "エレン・クルーガー", "C": "トム・クサヴァー", "D": "ヴィリー・タイバー" }, "answer": "B" },
+      { "id": "Q56", "question": "「Before the fall」で登場する、立体機動を装着する部隊の初期の呼称は？", "options": { "A": "機動歩兵", "B": "立体兵団", "C": "飛翔兵科", "D": "特務隊" }, "answer": "A" },
+      { "id": "Q57", "question": "エレンが最初に巨人化してトロスト区の穴を塞ぐために使用したのは？", "options": { "A": "大砲", "B": "馬", "C": "火薬", "D": "大岩" }, "answer": "D" },
+      { "id": "Q58", "question": "壁の秘密を知っていたニック司祭が殺害された方法は？", "options": { "A": "巨人に食われた", "B": "拷問の末に殺害された", "C": "毒殺された", "D": "自ら命を絶った" }, "answer": "B" },
+      { "id": "Q59", "question": "ケニー・アッカーマンの最期の言葉は「俺には…」何？", "options": { "A": "わからねぇ", "B": "もう十分だ", "C": "なれねぇよ", "D": "後悔はない" }, "answer": "C" },
+      { "id": "Q60", "question": "最終話でミカサがエレンの墓の前で言ったセリフは？", "options": { "A": "マフラーを巻いてくれてありがとう", "B": "ずっと忘れない", "C": "また会おうね", "D": "私の英雄" }, "answer": "A" }
+    ]
+  },
+  {
+    "level": 7,
+    "questions": [
+      { "id": "Q61", "question": "マーレの戦士隊の隊長は誰？", "options": { "A": "ライナー", "B": "マガト", "C": "ジーク", "D": "アニ" }, "answer": "C" },
+      { "id": "Q62", "question": "ヴィリー・タイバーの妹で、戦鎚の巨人の継承者だった人物の名前は？", "options": { "A": "フリーダ・タイバー", "B": "ラーラ・タイバー", "C": "ダイナ・タイバー", "D": "カリーナ・タイバー" }, "answer": "B" },
+      { "id": "Q63", "question": "エレンが戦鎚の巨人を捕食する際、何を利用して結晶を砕いた？", "options": { "A": "雷槍", "B": "超大型巨人の熱", "C": "自分の硬質化パンチ", "D": "顎の巨人の顎" }, "answer": "D" },
+      { "id": "Q64", "question": "サシャの父親の名前は？", "options": { "A": "アルトゥル・ブラウス", "B": "グスタフ・ブラウス", "C": "ヘルマン・ブラウス", "D": "ニコロ・ブラウス" }, "answer": "A" },
+      { "id": "Q65", "question": "「森から出るんだ」という言葉を象徴的に使ったキャラクターは？", "options": { "A": "エルヴィン", "B": "ピクシス", "C": "サシャの父", "D": "キース" }, "answer": "C" },
+      { "id": "Q66", "question": "フリッツ王がパラディ島に退避した際、結んだとされる「不戦の契り」の真意は？", "options": { "A": "島外の人間とは戦わない平和協定", "B": "巨人の力を二度と使わないための封印", "C": "再び世界から報復を受けた場合、甘んじて滅びを受け入れる", "D": "マーレ国への全面降伏の約束" }, "answer": "C" },
+      { "id": "Q67", "question": "グリシャがフリーダから始祖の巨人を奪う際、背中を押した人物は誰？", "options": { "A": "過去のクルーガー", "B": "未来のエレン", "C": "ジーク", "D": "カルラ" }, "answer": "B" },
+      { "id": "Q68", "question": "「Before the fall」でキュクロが片目を失った理由は？", "options": { "A": "シャビィによる拷問", "B": "装置の爆発事故", "C": "オーガという巨人との戦闘", "D": "生まれつき" }, "answer": "C" },
+      { "id": "Q69", "question": "壁内人類の記憶を改竄できなかった少数派の血族のうち、東洋の一族でないものは？", "options": { "A": "レイス一族", "B": "フリッツ一族", "C": "アルレルト一族", "D": "アッカーマン一族" }, "answer": "D" },
+      { "id": "Q70", "question": "マガト元帥が、最期に共に自爆した相手のキャラクターは？", "options": { "A": "ピクシス", "B": "キース・シャーディス", "C": "ハンジ", "D": "リヴァイ" }, "answer": "B" }
+    ]
+  },
+  {
+    "level": 8,
+    "questions": [
+      { "id": "Q71", "question": "エレンの持つ「座標」の力が最初に発動したのは、誰と接触した時？", "options": { "A": "ヒストリア", "B": "ジーク", "C": "巨人化したダイナ・フリッツ", "D": "アニ" }, "answer": "C" },
+      { "id": "Q72", "question": "マーレの戦士の中で、最後まで生き残ったのはライナー、ピークと誰？", "options": { "A": "ベルトルト", "B": "アニ", "C": "ポルコ", "D": "マルセル" }, "answer": "B" },
+      { "id": "Q73", "question": "壁の秘密を守る宗教団体の名前は？", "options": { "A": "ウォール教", "B": "マリア教", "C": "フリッツ教", "D": "パラディ教" }, "answer": "A" },
+      { "id": "Q74", "question": "リヴァイが紅茶を飲む際の特徴的なティーカップの持ち方は？", "options": { "A": "両手で包み込む", "B": "小指を立てる", "C": "取っ手を上から掴む", "D": "取っ手を持たない" }, "answer": "C" },
+      { "id": "Q75", "question": "エレンの同期で、「心臓を捧げよ！」のポーズを右手と左手間違えたキャラクターは？", "options": { "A": "サシャ", "B": "ジャン", "C": "アルミン", "D": "コニー" }, "answer": "D" },
+      { "id": "Q76", "question": "「Before the fall」の主人公キュクロを奴隷として買い取った人物は？", "options": { "A": "ホルヘ", "B": "アンヘル", "C": "ダリオ・イノセンシオ", "D": "カルロ" }, "answer": "C" },
+      { "id": "Q77", "question": "エレン達の卒業時の成績で、主席（1位）だったのは誰？", "options": { "A": "ミカサ・アッカーマン", "B": "ライナー・ブラウン", "C": "エレン・イェーガー", "D": "アニ・レオンハート" }, "answer": "A" },
+      { "id": "Q78", "question": "王政編で、新兵器として導入された「対人立体機動装置」を使用していた部隊は？", "options": { "A": "駐屯兵団精鋭部隊", "B": "調査兵団特別作戦班", "C": "マーレ治安当局", "D": "中央第一憲兵団" }, "answer": "D" },
+      { "id": "Q79", "question": "獣の巨人が投げ飛ばす投擲武器としてよく使われたものは何？", "options": { "A": "大砲の弾", "B": "砕いた岩", "C": "槍", "D": "丸太" }, "answer": "B" },
+      { "id": "Q80", "question": "九つの巨人のうち、最後に登場した（名前が明かされた）巨人は？", "options": { "A": "戦鎚の巨人", "B": "車力の巨人", "C": "顎の巨人", "D": "進撃の巨人" }, "answer": "A" }
+    ]
+  },
+  {
+    "level": 9,
+    "questions": [
+      { "id": "Q81", "question": "リヴァイの母親の名前は？", "options": { "A": "カルラ・イェーガー", "B": "アルマ", "C": "クシェル・アッカーマン", "D": "ダイナ・フリッツ" }, "answer": "C" },
+      { "id": "Q82", "question": "エルヴィンが幼い頃、父親が殺される原因となった「父親の仮説」の内容は？", "options": { "A": "壁の外に人類が生きている", "B": "王によって人類の記憶が改竄されている", "C": "壁は巨人でできている", "D": "巨人は元人間である" }, "answer": "B" },
+      { "id": "Q83", "question": "ハンジの後を継いで調査兵団第15代団長となったのは誰？", "options": { "A": "ジャン・キルシュタイン", "B": "アルミン・アルレルト", "C": "リヴァイ", "D": "ミカサ・アッカーマン" }, "answer": "B" },
+      { "id": "Q84", "question": "巨人の継承権をライナーに奪われたマルセルの弟は？", "options": { "A": "コルト・グライス", "B": "ファルコ・グライス", "C": "ウド", "D": "ポルコ・ガリアード" }, "answer": "D" },
+      { "id": "Q85", "question": "パラディ島で発見された、常温で気化する際に爆発的なエネルギーを生む石は？", "options": { "A": "黒金石", "B": "発光石", "C": "氷爆石", "D": "太陽石" }, "answer": "C" },
+      { "id": "Q86", "question": "ユミルが巨人化能力を得る前、マーレで祀り上げられていた時の偽名は？", "options": { "A": "ユミル（始祖と同じ名）", "B": "フリーダ", "C": "マリア", "D": "クリスタ" }, "answer": "A" },
+      { "id": "Q87", "question": "「地鳴らし」を防ぐため、ハンジが足止めとして戦って犠牲になった場所の近くの施設は？", "options": { "A": "スラバ要塞", "B": "オディハの飛行艇整備場", "C": "レベリオ収容区", "D": "トロスト区" }, "answer": "B" },
+      { "id": "Q88", "question": "「進撃の巨人」の物語の始まりの年（壁が破壊された年）は？", "options": { "A": "850年", "B": "854年", "C": "845年", "D": "800年" }, "answer": "C" },
+      { "id": "Q89", "question": "フロックが最期にアルミン達に訴えた言葉の意味は？", "options": { "A": "自分を置いて逃げろ", "B": "エレンを止めればエルディアは滅びる", "C": "マーレに降伏しろ", "D": "海を見に行け" }, "answer": "B" },
+      { "id": "Q90", "question": "「道」の世界でジークが作っていたものは？", "options": { "A": "新しい壁を作る", "B": "武器を作る", "C": "砂で巨人の体を作る", "D": "時計を作る" }, "answer": "C" }
+    ]
+  },
+  {
+    "level": 10,
+    "questions": [
+      { "id": "Q91", "question": "ミカサの頭痛の本当の原因は？", "options": { "A": "ユミルがミカサの心の中を覗き見ていたから", "B": "アッカーマンの覚醒の副作用", "C": "過去のトラウマのフラッシュバック", "D": "病気" }, "answer": "A" },
+      { "id": "Q92", "question": "エルヴィンが右腕を失った際、巨人に噛まれながらも部下に出した命令は？", "options": { "A": "退け！！", "B": "進め！！", "C": "私を置いていけ！！", "D": "撃て！！" }, "answer": "B" },
+      { "id": "Q93", "question": "「Before the fall」でキュクロが初めて倒した巨人の俗称は？", "options": { "A": "オーガ", "B": "サイクロプス", "C": "ゴリアテ", "D": "コロッサス" }, "answer": "A" },
+      { "id": "Q94", "question": "ヒストリアの母親が、最期にヒストリアに言い残した残酷な言葉は？", "options": { "A": "私を助けて", "B": "ごめんなさい", "C": "お前なんか産まなければよかった", "D": "立派に生きなさい" }, "answer": "C" },
+      { "id": "Q95", "question": "トム・クサヴァーの正体（職業）は？", "options": { "A": "マーレ軍の将軍", "B": "タイバー家の当主", "C": "フリッツ王の側近", "D": "巨人化学の研究者" }, "answer": "D" },
+      { "id": "Q96", "question": "地鳴らしで世界の何割の人類が滅亡したと語られている？", "options": { "A": "約5割", "B": "約8割", "C": "約9.9割", "D": "全滅" }, "answer": "B" },
+      { "id": "Q97", "question": "巨人の力がこの世から消え去った後、リヴァイはどこで何をしている描写がある？", "options": { "A": "パラディ島の軍の司令官になっている", "B": "紅茶の店を開いている", "C": "地下街に戻った", "D": "車椅子に乗り、ガビやファルコと街にいる" }, "answer": "D" },
+      { "id": "Q98", "question": "アッカーマン一族が本来持っていた役割とは？", "options": { "A": "王を護衛する武の家系", "B": "巨人を操る司祭", "C": "記憶を改竄する記録係", "D": "壁を建設した職人" }, "answer": "A" },
+      { "id": "Q99", "question": "「心臓を捧げよ」という言葉が持つ、本来の真の意味（エルヴィン等の解釈）に最も近いのは？", "options": { "A": "王への絶対的な忠誠", "B": "神への信仰", "C": "人類の存続のために個人の命を犠牲にする覚悟", "D": "家族への愛" }, "answer": "C" },
+      { "id": "Q100", "question": "最終巻の加筆ページで描かれた、遠い未来のパラディ島はどうなった？", "options": { "A": "世界中の人々が移住し平和な楽園となった", "B": "再び巨人が支配する世界に戻った", "C": "海に沈んだ", "D": "近代兵器によって爆撃され廃墟となった" }, "answer": "D" }
+    ]
+  }
+];
+
+// ==================== クイズロジック ====================
+let currentLevel = 1;
+let currentQuestionIndex = 0;
+let score = 100;
+let activeQuestions = [];
+let isWaiting = false;
+
+// 画面の切り替え
+function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+function showHome() {
+    switchScreen('home-screen');
+}
+
+// クイズ開始
+function start4ChoiceGame(level) {
+    currentLevel = level;
+    currentQuestionIndex = 0;
+    score = 100;
+    isWaiting = false;
+
+    const levelData = aotQuizData.find(d => d.level === level);
+    if(!levelData) return;
+
+    activeQuestions = [...levelData.questions];
+
+    document.getElementById('level-display').innerText = `Lv.${level}`;
+    updateScoreDisplay();
+    switchScreen('quiz-screen');
+    loadQuestion();
+}
+
+// 問題の読み込み
+function loadQuestion() {
+    if(currentQuestionIndex >= activeQuestions.length) {
+        endGame();
+        return;
+    }
+
+    const q = activeQuestions[currentQuestionIndex];
+    document.getElementById('question-count').innerText = `${currentQuestionIndex + 1} / ${activeQuestions.length} 問`;
+    document.getElementById('question-text-4c').innerText = q.question;
+
+    const opts = ['A', 'B', 'C', 'D'];
+    opts.forEach(opt => {
+        const btn = document.getElementById(`btn-opt-${opt}`);
+        btn.innerText = q.options[opt];
+        // 見た目と無効化状態のリセット
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        btn.disabled = false;
+    });
+}
+
+// 答え合わせ
+function checkAnswer(selectedOpt) {
+    if(isWaiting) return;
+    isWaiting = true;
+
+    const q = activeQuestions[currentQuestionIndex];
+    const isCorrect = (selectedOpt === q.answer);
+
+    const btn = document.getElementById(`btn-opt-${selectedOpt}`);
+    
+    // 他のボタンを無効化
+    ['A', 'B', 'C', 'D'].forEach(opt => {
+        document.getElementById(`btn-opt-${opt}`).disabled = true;
+    });
+
+    if(isCorrect) {
+        showFeedback(true);
+        btn.style.backgroundColor = '#2d4a35'; // 正解時は緑色を強調
+        btn.style.color = '#fff';
+        
+        setTimeout(() => {
+            currentQuestionIndex++;
+            isWaiting = false;
+            loadQuestion();
+        }, 1000);
+    } else {
+        showFeedback(false);
+        btn.style.backgroundColor = '#8b0000'; // 不正解時は赤色
+        btn.style.color = '#fff';
+        
+        // 不正解の場合はペナルティ(-10pt)で次に進めない（正解するまで選ばせるか、即次へ行くか。今回はワンピース版に倣い減点のみで進行を止める）
+        score = Math.max(0, score - 10);
+        updateScoreDisplay();
+        
+        setTimeout(() => {
+            isWaiting = false;
+            // 不正解のボタンは暗くしたまま、他のボタンを押せるようにする
+            ['A', 'B', 'C', 'D'].forEach(opt => {
+                if(opt !== selectedOpt) {
+                    document.getElementById(`btn-opt-${opt}`).disabled = false;
+                }
+            });
+        }, 800);
+    }
+}
+
+// スコア表示更新
+function updateScoreDisplay() {
+    document.getElementById('score-display').innerText = score;
+}
+
+// 正誤フィードバック表示
+function showFeedback(isCorrect) {
+    const fb = document.getElementById('feedback');
+    fb.innerText = isCorrect ? '正解！' : '不正解...';
+    fb.className = isCorrect ? 'correct show' : 'incorrect show';
+    
+    setTimeout(() => {
+        fb.classList.remove('show');
+    }, 800);
+}
+
+// クイズ終了と結果表示
+function endGame() {
+    document.getElementById('result-level').innerText = `レベル ${currentLevel} 帰還報告`;
+    document.getElementById('final-score').innerText = score;
+
+    let rank = '';
+    let comment = '';
+    if(score === 100) { 
+        rank = '調査兵団 団長'; 
+        comment = '人類の希望！完璧な知識だ！'; 
+    } else if(score >= 80) { 
+        rank = '調査兵団 班長'; 
+        comment = '素晴らしい！壁外調査でも必ず生き残れるぞ！'; 
+    } else if(score >= 60) { 
+        rank = '精鋭兵士'; 
+        comment = 'なかなかの実力だ。更なる高みを目指せ！'; 
+    } else if(score >= 40) { 
+        rank = '一人前の兵士'; 
+        comment = 'まだまだ訓練が足りないな。出直してこい！'; 
+    } else { 
+        rank = '訓練兵'; 
+        comment = '何も分かっていないようだ…巨人に食べられてしまうぞ！'; 
+    }
+
+    document.getElementById('final-rank').innerText = rank;
+    document.getElementById('final-comment').innerText = comment;
+
+    // 自己最高記録の保存 (ローカルストレージ)
+    const key = `aot-record-lv${currentLevel}`;
+    const prevRecord = localStorage.getItem(key);
+    if(!prevRecord || score > parseInt(prevRecord)) {
+        localStorage.setItem(key, score);
+    }
+
+    switchScreen('result-screen');
+}
+
+// 記録画面の表示
+function showRecords() {
+    for(let i=1; i<=10; i++) {
+        const val = localStorage.getItem(`aot-record-lv${i}`);
+        const td = document.getElementById(`rec-lv${i}`);
+        if(td) {
+            td.innerText = val !== null ? `${val} pt` : '-';
+        }
+    }
+    switchScreen('record-screen');
+}
+</script>
+</body>
+</html>
