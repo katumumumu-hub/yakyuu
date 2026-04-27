@@ -578,19 +578,15 @@ function checkAnswer(selectedOpt) {
         btn.style.backgroundColor = '#8b0000'; // 不正解時は赤色
         btn.style.color = '#fff';
         
-        // 不正解の場合はペナルティ(-10pt)で次に進めない（正解するまで選ばせるか、即次へ行くか。今回はワンピース版に倣い減点のみで進行を止める）
+        // 不正解の場合はペナルティ(-10pt)で次に進む
         score = Math.max(0, score - 10);
         updateScoreDisplay();
         
         setTimeout(() => {
+            currentQuestionIndex++;
             isWaiting = false;
-            // 不正解のボタンは暗くしたまま、他のボタンを押せるようにする
-            ['A', 'B', 'C', 'D'].forEach(opt => {
-                if(opt !== selectedOpt) {
-                    document.getElementById(`btn-opt-${opt}`).disabled = false;
-                }
-            });
-        }, 800);
+            loadQuestion();
+        }, 1000);
     }
 }
 
