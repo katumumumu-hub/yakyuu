@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NARUTO QUIZ</title>
+<style>
+    :root {
+        --primary-color: #ff9f43; /* ナルトカラーのオレンジ系に調整 */
+        --secondary-color: #0abde3;
+        --bg-color: #f1f2f6;
+        --text-color: #2f3542;
+        --correct-color: #1dd1a1;
+        --wrong-color: #ff6b6b;
+    }
+
+    body {
+        font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        background-color: var(--bg-color);
+        background-image: radial-gradient(#ced6e0 2px, transparent 2px);
+        background-size: 20px 20px;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text-color);
+    }
+
+    .container {
+        background-color: white;
+        border: 5px solid var(--text-color);
+        border-radius: 15px;
+        box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        text-align: center;
+        max-width: 800px;
+        width: 90%;
+        position: relative;
+    }
+
+    h1 {
+        font-size: 2.5em;
+        color: white;
+        background-color: var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 4px solid var(--text-color);
+        margin-top: 0;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 0px var(--text-color);
+        transform: rotate(-2deg);
+        display: inline-block;
+    }
+
+    p.subtitle {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #57606f;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .level-btn {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        background-color: var(--secondary-color);
+        color: white;
+        font-size: 1.2em;
+        font-weight: bold;
+        padding: 15px 10px;
+        border: 4px solid var(--text-color);
+        border-radius: 10px;
+        box-shadow: 4px 4px 0px var(--text-color);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .level-btn:hover {
+        background-color: #0984e3;
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px var(--text-color);
+    }
+
+    .level-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px var(--text-color);
+    }
+
+    .score-badge {
+        font-size: 0.7em;
+        background-color: white;
+        color: var(--text-color);
+        padding: 3px 8px;
+        border-radius: 20px;
+        margin-top: 5px;
+        border: 2px solid var(--text-color);
+    }
+
+    .home-btn {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 10px 20px;
+        background-color: #57606f;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        border: 3px solid var(--text-color);
+        font-weight: bold;
+        transition: 0.2s;
+    }
+    
+    .home-btn:hover {
+        background-color: #2f3542;
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0px var(--text-color);
+    }
+
+    /* クイズ画面用スタイル */
+    #quiz-info {
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        margin-bottom: 20px;
+        font-size: 1.2em;
+        border-bottom: 3px dashed #ced6e0;
+        padding-bottom: 10px;
+    }
+
+    #question-text {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 30px;
+        line-height: 1.4;
+    }
+
+    .option-btn {
+        display: block;
+        width: 100%;
+        background-color: white;
+        color: var(--text-color);
+        font-size: 1.2em;
+        font-weight: bold;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 4px solid var(--text-color);
+        border-radius: 10px;
+        box-shadow: 4px 4px 0px var(--text-color);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+    }
+
+    .option-btn:hover {
+        background-color: #f1f2f6;
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px var(--text-color);
+    }
+
+    .option-btn.correct {
+        background-color: var(--correct-color);
+        color: white;
+    }
+
+    .option-btn.wrong {
+        background-color: var(--wrong-color);
+        color: white;
+    }
+
+    /* 結果画面用スタイル */
+    #result-score {
+        font-size: 4em;
+        font-weight: bold;
+        color: var(--primary-color);
+        text-shadow: 2px 2px 0px var(--text-color);
+        margin: 20px 0;
+    }
+
+    #result-comment {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 30px;
+        color: #e15f41;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+</style>
+</head>
+<body>
+
+<div class="container" id="screen-home">
+    <h1>NARUTO QUIZ</h1>
+    <p class="subtitle">挑戦したいレベルを選んでね！<br>（100点からの減点方式）</p>
+    <div id="level-list" class="button-grid">
+        </div>
+    <a href="../index.html" class="home-btn">🏠 ポータルホームに戻る</a>
+</div>
+
+<div class="container hidden" id="screen-quiz">
+    <div id="quiz-info">
+        <span id="display-level">LEVEL 1</span>
+        <span id="display-progress">1 / 10 問</span>
+        <span id="display-score" style="color: var(--primary-color);">残点: 100</span>
+    </div>
+    <div id="question-text">ここに問題文が表示されます</div>
+    <div id="options-container">
+        </div>
+</div>
+
+<div class="container hidden" id="screen-result">
+    <h1>結果発表</h1>
+    <div id="result-score">100点</div>
+    <div id="result-comment">火影クラス！</div>
+    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        <button onclick="showHome()" class="level-btn" style="background-color: var(--secondary-color);">レベル選択へ</button>
+    </div>
+</div>
+
+<script>
+    // クイズデータ（JSONデータをJavaScriptオブジェクトとして格納）
+    const quizData = [
+        {"level": 1, "question": "うずまきナルトの好きな食べ物は？", "options": ["ラーメン", "寿司", "焼肉", "カレー"], "answer": "ラーメン"},
+        {"level": 1, "question": "ナルトの師匠で「エロ仙人」と呼ばれるのは？", "options": ["自来也", "大蛇丸", "綱手", "カカシ"], "answer": "自来也"},
+        {"level": 1, "question": "ナルトのチームメイトはうちはサスケと誰？", "options": ["春野サクラ", "日向ヒナタ", "山中いの", "テンテン"], "answer": "春野サクラ"},
+        {"level": 1, "question": "ナルトの父親の四代目火影の名前は？", "options": ["波風ミナト", "猿飛ヒルゼン", "千手柱間", "千手扉間"], "answer": "波風ミナト"},
+        {"level": 1, "question": "ナルトの体内に封印されている尾獣は？", "options": ["九尾", "一尾", "八尾", "三尾"], "answer": "九尾"},
+        {"level": 1, "question": "サスケの兄の名前は？", "options": ["うちはイタチ", "うちはマダラ", "うちはオビト", "うちはシスイ"], "answer": "うちはイタチ"},
+        {"level": 1, "question": "ナルトたちが所属する里は？", "options": ["木ノ葉隠れの里", "砂隠れの里", "霧隠れの里", "雲隠れの里"], "answer": "木ノ葉隠れの里"},
+        {"level": 1, "question": "カカシの左目にあるのは何眼？", "options": ["写輪眼", "白眼", "輪廻眼", "転生眼"], "answer": "写輪眼"},
+        {"level": 1, "question": "ナルトの得意忍術は「影分身の術」と何？", "options": ["螺旋丸", "千鳥", "雷切", "火球の術"], "answer": "螺旋丸"},
+        {"level": 1, "question": "我愛羅の額に刻まれている漢字は？", "options": ["愛", "砂", "殺", "憎"], "answer": "愛"},
+        {"level": 2, "question": "中忍試験の第一の試験はどんな形式だった？", "options": ["筆記試験", "サバイバル", "個人戦", "チーム戦"], "answer": "筆記試験"},
+        {"level": 2, "question": "ロック・リーの得意な術の系統は？", "options": ["体術", "忍術", "幻術", "仙術"], "answer": "体術"},
+        {"level": 2, "question": "日向ネジが使う血継限界は？", "options": ["白眼", "写輪眼", "木遁", "氷遁"], "answer": "白眼"},
+        {"level": 2, "question": "サスケがカカシから教わった雷遁の術は？", "options": ["千鳥", "雷切", "紫電", "麒麟"], "answer": "千鳥"},
+        {"level": 2, "question": "音隠れの里を創設したのは誰？", "options": ["大蛇丸", "カブト", "君麻呂", "多由也"], "answer": "大蛇丸"},
+        {"level": 2, "question": "中忍試験でナルトが戦った犬塚キバの忍犬の名前は？", "options": ["赤丸", "黒丸", "パックン", "ブル"], "answer": "赤丸"},
+        {"level": 2, "question": "秋道チョウジの好きな言葉は？", "options": ["最後の一口", "ダイエット", "ポテトチップス", "焼肉定食"], "answer": "最後の一口"},
+        {"level": 2, "question": "奈良シカマルの得意な術は何を使った術？", "options": ["影", "光", "風", "水"], "answer": "影"},
+        {"level": 2, "question": "三代目火影・猿飛ヒルゼンが使う口寄せの動物は？", "options": ["猿", "犬", "カエル", "蛇"], "answer": "猿"},
+        {"level": 2, "question": "大蛇丸がサスケの首元に刻んだのは？", "options": ["呪印", "封印", "刺青", "傷跡"], "answer": "呪印"},
+        {"level": 3, "question": "サスケ奪還任務の隊長を務めたのは誰？", "options": ["奈良シカマル", "はたけカカシ", "うずまきナルト", "日向ネジ"], "answer": "奈良シカマル"},
+        {"level": 3, "question": "暁のメンバー、デイダラが芸術と呼ぶものは？", "options": ["爆発", "永遠", "美しさ", "静寂"], "answer": "爆発"},
+        {"level": 3, "question": "サソリの本来の姿はどんな状態？", "options": ["傀儡人形", "老人", "子供", "怪物"], "answer": "傀儡人形"},
+        {"level": 3, "question": "ナルトが風の性質変化を加えて完成させた術は？", "options": ["風遁・螺旋手裏剣", "風遁・大突破", "風遁・真空波", "風遁・烈風掌"], "answer": "風遁・螺旋手裏剣"},
+        {"level": 3, "question": "サイが所属していた木ノ葉の暗部養成部門の名前は？", "options": ["根", "幹", "葉", "枝"], "answer": "根"},
+        {"level": 3, "question": "ヤマトが使える初代火影由来の術は？", "options": ["木遁", "水遁", "土遁", "火遁"], "answer": "木遁"},
+        {"level": 3, "question": "飛段が信仰している宗教の教神は？", "options": ["ジャシン", "シニガミ", "エンマ", "アシュラ"], "answer": "ジャシン"},
+        {"level": 3, "question": "角都の体内にある心臓の数は最大いくつ？", "options": ["5つ", "3つ", "7つ", "9つ"], "answer": "5つ"},
+        {"level": 3, "question": "アスマがシカマルに託した「玉」とは誰のこと？", "options": ["これから生まれてくる子供", "火影", "ナルト", "里の民"], "answer": "これから生まれてくる子供"},
+        {"level": 3, "question": "大蛇丸のアジトでサスケが使った千鳥の派生技は？", "options": ["千鳥流し", "千鳥鋭槍", "千鳥千本", "麒麟"], "answer": "千鳥流し"},
+        {"level": 4, "question": "自来也が仙術を学んだ場所は？", "options": ["妙木山", "龍地洞", "湿骨林", "音隠れの里"], "answer": "妙木山"},
+        {"level": 4, "question": "ペイン六道のうち、天道は元々誰の死体？", "options": ["弥彦", "長門", "小南", "半蔵"], "answer": "弥彦"},
+        {"level": 4, "question": "イタチがサスケとの戦いで見せた、絶対防御の術は？", "options": ["須佐能乎", "天照", "月読", "伊邪那岐"], "answer": "須佐能乎"},
+        {"level": 4, "question": "サスケが結成した小隊「蛇」（後に「鷹」）のメンバーは水月、重吾と誰？", "options": ["香燐", "多由也", "紅蓮", "白"], "answer": "香燐"},
+        {"level": 4, "question": "小南が使う術の主な素材は？", "options": ["紙", "布", "糸", "花"], "answer": "紙"},
+        {"level": 4, "question": "キラービーの中に封印されている尾獣は？", "options": ["八尾", "七尾", "六尾", "二尾"], "answer": "八尾"},
+        {"level": 4, "question": "仙人モードになったナルトの目の周りの隈取りの色は？", "options": ["オレンジ（赤）", "青", "黒", "紫"], "answer": "オレンジ（赤）"},
+        {"level": 4, "question": "長門が最後にナルトを信じて使った、死者を蘇らせる術は？", "options": ["外道・輪廻天生の術", "穢土転生の術", "不屍転生", "己生転生"], "answer": "外道・輪廻天生の術"},
+        {"level": 4, "question": "ダンゾウの右腕に大量に埋め込まれていたのは何？", "options": ["写輪眼", "白眼", "柱間細胞", "呪印"], "answer": "写輪眼"},
+        {"level": 4, "question": "五影会談が開催された国は？", "options": ["鉄の国", "波の国", "雪の国", "茶の国"], "answer": "鉄の国"},
+        {"level": 5, "question": "第四次忍界大戦で忍連合軍の総大将を務めたのは？", "options": ["四代目雷影・エー", "五代目火影・綱手", "三代目土影・オオノキ", "五代目水影・メイ"], "answer": "四代目雷影・エー"},
+        {"level": 5, "question": "薬師カブトが大量の死者を蘇らせた術は？", "options": ["穢土転生", "輪廻天生", "不屍転生", "己生転生"], "answer": "穢土転生"},
+        {"level": 5, "question": "ナルトが九尾のチャクラをコントロールするために修行した場所は？", "options": ["島亀", "妙木山", "精神世界", "終末の谷"], "answer": "島亀"},
+        {"level": 5, "question": "ナルトの母親の名前は？", "options": ["うずまきクシナ", "うずまきミト", "うずまきカリン", "うずまきヒマワリ"], "answer": "うずまきクシナ"},
+        {"level": 5, "question": "金角・銀角兄弟が持っていた六道仙人の宝具の数は？", "options": ["5つ", "3つ", "7つ", "9つ"], "answer": "5つ"},
+        {"level": 5, "question": "イタチが穢土転生を止めるためにカブトにかけた幻術は？", "options": ["伊邪那美", "伊邪那岐", "別天神", "月読"], "answer": "伊邪那美"},
+        {"level": 5, "question": "マダラが隕石を落とした術の名前は？", "options": ["天碍震星", "地爆天星", "万象天引", "神羅天征"], "answer": "天碍震星"},
+        {"level": 5, "question": "我愛羅と戦った穢土転生の先代風影は第何代？", "options": ["四代目", "三代目", "二代目", "初代"], "answer": "四代目"},
+        {"level": 5, "question": "オビトが正体を隠して名乗っていた名前は？", "options": ["トビ", "ゼツ", "グルグル", "マダラ"], "answer": "トビ"},
+        {"level": 5, "question": "忍刀七人衆の刀の一つ「鮫肌」の元の持ち主は？", "options": ["干柿鬼鮫", "桃地再不斬", "林檎雨由利", "鬼灯水月"], "answer": "干柿鬼鮫"},
+        {"level": 6, "question": "十尾の復活を阻止するために立ち上がった歴代火影たちを穢土転生させたのは誰？", "options": ["大蛇丸", "カブト", "オビト", "マダラ"], "answer": "大蛇丸"},
+        {"level": 6, "question": "初代火影・千手柱間の妻の名前は？", "options": ["うずまきミト", "うずまきクシナ", "うちはミコト", "猿飛ビワコ"], "answer": "うずまきミト"},
+        {"level": 6, "question": "十尾の人柱力に最初になったのは誰？", "options": ["うちはオビト", "うちはマダラ", "うずまきナルト", "大筒木カグヤ"], "answer": "うちはオビト"},
+        {"level": 6, "question": "ナルトとサスケが共闘して放った、螺旋手裏剣と加具土命の合体技の名前（ミナト命名）は？", "options": ["灼遁・光輪疾風漆黒矢零式", "炎遁・螺旋手裏剣", "黒炎螺旋丸", "風炎合体・螺旋手裏剣"], "answer": "灼遁・光輪疾風漆黒矢零式"},
+        {"level": 6, "question": "カカシとオビトの写輪眼が持つ固有の時空間忍術は？", "options": ["神威", "飛雷神", "天手力", "黄泉比良坂"], "answer": "神威"},
+        {"level": 6, "question": "マイト・ガイが八門遁甲の陣で最後に開いた門は？", "options": ["死門", "驚門", "景門", "生門"], "answer": "死門"},
+        {"level": 6, "question": "ガイがマダラに放った、空間を歪ませるほどの最強の体術は？", "options": ["夜ガイ", "昼虎", "朝孔雀", "夕象"], "answer": "夜ガイ"},
+        {"level": 6, "question": "六道仙人の本名は？", "options": ["大筒木ハゴロモ", "大筒木ハムラ", "大筒木アシュラ", "大筒木インドラ"], "answer": "大筒木ハゴロモ"},
+        {"level": 6, "question": "ナルトが六道仙人から授かった力は？", "options": ["陽の力", "陰の力", "輪廻眼", "木遁"], "answer": "陽の力"},
+        {"level": 6, "question": "サスケが六道仙人から授かった力は？", "options": ["陰の力", "陽の力", "仙人モード", "九尾のチャクラ"], "answer": "陰の力"},
+        {"level": 7, "question": "マダラが発動した、全世界の人々を幻術にかける術は？", "options": ["無限月読", "神羅天征", "別天神", "伊邪那美"], "answer": "無限月読"},
+        {"level": 7, "question": "無限月読から逃れるために、サスケが使った防御は？", "options": ["須佐能乎で覆う", "時空間へ逃げる", "輪廻眼で術を打ち消す", "結界を張る"], "answer": "須佐能乎で覆う"},
+        {"level": 7, "question": "チャクラの祖と呼ばれる大筒木カグヤの二人の息子の名前は？", "options": ["ハゴロモとハムラ", "インドラとアシュラ", "モモシキとキンシキ", "トネリとウラシキ"], "answer": "ハゴロモとハムラ"},
+        {"level": 7, "question": "カグヤの持つ、一撃で対象を灰にする骨の術は？", "options": ["共殺の灰骨", "屍骨脈", "十指穿弾", "早蕨の舞"], "answer": "共殺の灰骨"},
+        {"level": 7, "question": "ナルトがカグヤに対して使った、意表を突くお色気の術の派生は？", "options": ["お色気・逆ハーレムの術", "お色気・女の子同士の術", "お色気・男の子同士の術", "お色気・ハーレムの術"], "answer": "お色気・逆ハーレムの術"},
+        {"level": 7, "question": "オビトがカカシに両目の写輪眼を託したことで、カカシが発動できたのは？", "options": ["完全体・須佐能乎", "無限月読", "天碍震星", "輪廻眼"], "answer": "完全体・須佐能乎"},
+        {"level": 7, "question": "カグヤを封印するために使われた六道仙人の術は？", "options": ["六道・地爆天星", "外道魔像", "屍鬼封尽", "八卦封印"], "answer": "六道・地爆天星"},
+        {"level": 7, "question": "ナルトとサスケの最後の戦いが行われた場所は？", "options": ["終末の谷", "火影岩", "天地橋", "鉄の国"], "answer": "終末の谷"},
+        {"level": 7, "question": "最後の戦いでナルトとサスケが失った腕は？", "options": ["ナルトは右腕、サスケは左腕", "ナルトは左腕、サスケは右腕", "二人とも右腕", "二人とも左腕"], "answer": "ナルトは右腕、サスケは左腕"},
+        {"level": 7, "question": "大戦後、六代目火影に就任したのは誰？", "options": ["はたけカカシ", "うずまきナルト", "奈良シカマル", "春野サクラ"], "answer": "はたけカカシ"},
+        {"level": 8, "question": "ナルトの息子・ボルトの妹の名前は？", "options": ["ヒマワリ", "サラダ", "ミツキ", "チョウチョウ"], "answer": "ヒマワリ"},
+        {"level": 8, "question": "サスケとサクラの娘の名前は？", "options": ["サラダ", "ヒマワリ", "チョウチョウ", "スミレ"], "answer": "サラダ"},
+        {"level": 8, "question": "ミツキの「親」は誰？", "options": ["大蛇丸", "自来也", "綱手", "カブト"], "answer": "大蛇丸"},
+        {"level": 8, "question": "ボルトの師匠となったのは誰？", "options": ["うちはサスケ", "木ノ葉丸", "はたけカカシ", "うずまきナルト"], "answer": "うちはサスケ"},
+        {"level": 8, "question": "ボルトの右目に発現した特殊な瞳術の名前は？", "options": ["淨眼", "白眼", "転生眼", "写輪眼"], "answer": "淨眼"},
+        {"level": 8, "question": "シカマルとテマリの息子の名前は？", "options": ["シカダイ", "シカク", "いのじん", "チョウチョウ"], "answer": "シカダイ"},
+        {"level": 8, "question": "サイといのの息子の名前は？", "options": ["いのじん", "シカダイ", "メタル", "イワベエ"], "answer": "いのじん"},
+        {"level": 8, "question": "大筒木モモシキがボルトの掌に残した印は？", "options": ["カーマ（楔）", "呪印", "百豪の印", "封印術"], "answer": "カーマ（楔）"},
+        {"level": 8, "question": "ナルトが就任した火影は何代目？", "options": ["七代目", "六代目", "八代目", "九代目"], "answer": "七代目"},
+        {"level": 8, "question": "ボルトたちの担当上忍は誰？", "options": ["猿飛木ノ葉丸", "風祭モエギ", "伊勢ウドン", "日向ハナビ"], "answer": "猿飛木ノ葉丸"},
+        {"level": 9, "question": "二代目水影が口寄せする巨大な蜃（おおはまぐり）の名前は？", "options": ["蜃（オオハマグリ）", "蛤（ハマグリ）", "幻貝", "水貝"], "answer": "蜃（オオハマグリ）"},
+        {"level": 9, "question": "カカシが飼っている忍犬の中で、一番小さい犬の名前は？", "options": ["パックン", "ビスケ", "アキノ", "シバ"], "answer": "パックン"},
+        {"level": 9, "question": "初代火影・千手柱間の名言「〇〇の火の意志」の〇〇に入るのは？", "options": ["木ノ葉", "忍", "炎", "希望"], "answer": "木ノ葉"},
+        {"level": 9, "question": "角都が過去に暗殺を企て、戦った相手は誰？", "options": ["初代火影", "二代目火影", "うちはマダラ", "三代目雷影"], "answer": "初代火影"},
+        {"level": 9, "question": "サソリが自身を人傀儡にした時、唯一生身として残した部分は？", "options": ["心臓（生体核）", "脳", "右目", "背髄"], "answer": "心臓（生体核）"},
+        {"level": 9, "question": "鬼灯水月が探していた、忍刀七人衆の刀すべてを集めるという野望。水月が最初に手にした刀は？", "options": ["断刀・首斬り包丁", "大刀・鮫肌", "双刀・ヒラメカレイ", "雷刀・牙"], "answer": "断刀・首斬り包丁"},
+        {"level": 9, "question": "穢土転生の術を開発したのは誰？", "options": ["二代目火影・千手扉間", "大蛇丸", "薬師カブト", "六道仙人"], "answer": "二代目火影・千手扉間"},
+        {"level": 9, "question": "自来也の小説「イチャイチャパラダイス」のファンであるカカシ。このシリーズの映画化作品の主演女優は誰？", "options": ["富士風雪絵（風花小雪）", "紅蓮", "撫子シズカ", "シオン"], "answer": "富士風雪絵（風花小雪）"},
+        {"level": 9, "question": "音の四人衆の中で、唯一の女性は誰？", "options": ["多由也", "左近", "次郎坊", "鬼童丸"], "answer": "多由也"},
+        {"level": 9, "question": "綱手の付き人、シズネが連れている豚の名前は？", "options": ["トントン", "ブーブー", "ピギー", "ポーク"], "answer": "トントン"},
+        {"level": 10, "question": "うずまきナルトの誕生日はいつ？", "options": ["10月10日", "7月23日", "1月1日", "4月1日"], "answer": "10月10日"},
+        {"level": 10, "question": "うちはサスケの誕生日はいつ？", "options": ["7月23日", "10月10日", "6月9日", "3月28日"], "answer": "7月23日"},
+        {"level": 10, "question": "うみのイルカの両親を殺したのは誰？", "options": ["九尾（九喇嘛）", "大蛇丸", "角都", "イタチ"], "answer": "九尾（九喇嘛）"},
+        {"level": 10, "question": "波の国任務で登場したタズナの職業は？", "options": ["橋造りの達人", "船長", "大工", "商人"], "answer": "橋造りの達人"},
+        {"level": 10, "question": "飛段の出身の里は？", "options": ["湯隠れの里", "霜隠れの里", "草隠れの里", "滝隠れの里"], "answer": "湯隠れの里"},
+        {"level": 10, "question": "うちはイタチが好物としていた甘味は？", "options": ["三色団子", "羊羹", "あんみつ", "大福"], "answer": "三色団子"},
+        {"level": 10, "question": "カカシの父、はたけサクモの異名は？", "options": ["木ノ葉の白い牙", "木ノ葉の黄色い閃光", "木ノ葉の青い猛獣", "木ノ葉の紅きハバネロ"], "answer": "木ノ葉の白い牙"},
+        {"level": 10, "question": "ミナトの異名「黄色い閃光」の由来となった術は？", "options": ["飛雷神の術", "螺旋丸", "瞬身の術", "影分身の術"], "answer": "飛雷神の術"},
+        {"level": 10, "question": "君麻呂の血継限界「屍骨脈」を持つ一族の名前は？", "options": ["かぐや一族", "雪一族", "鬼灯一族", "水無月一族"], "answer": "かぐや一族"},
+        {"level": 10, "question": "ナルトの仙人モード修行で、カエルの油を塗るとどうなる？", "options": ["カエルになる", "チャクラが増える", "透明になる", "肌が硬くなる"], "answer": "カエルになる"}
+    ];
+
+    // 変数
+    let currentLevel = 1;
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 100; // 減点方式
+    let isAnswering = false;
+
+    // LocalStorage関連
+    const STORAGE_KEY = 'naruto_quiz_scores';
+    function getScores() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : {};
+    }
+    function saveScore(level, newScore) {
+        const scores = getScores();
+        // 過去の記録がないか、今回のスコアの方が高ければ更新
+        if (scores[level] === undefined || newScore > scores[level]) {
+            scores[level] = newScore;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+        }
+    }
+
+    // 画面切り替え関数
+    function hideAllScreens() {
+        document.getElementById('screen-home').classList.add('hidden');
+        document.getElementById('screen-quiz').classList.add('hidden');
+        document.getElementById('screen-result').classList.add('hidden');
+    }
+
+    // 初期化：レベルボタンの生成
+    function initHome() {
+        const container = document.getElementById('level-list');
+        container.innerHTML = '';
+        const scores = getScores();
+
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('div');
+            btn.className = 'level-btn';
+            
+            // 記録の表示
+            let scoreText = scores[i] !== undefined ? `最高: ${scores[i]}点` : '未挑戦';
+            
+            btn.innerHTML = `LEVEL ${i} <span class="score-badge">${scoreText}</span>`;
+            btn.onclick = () => startQuiz(i);
+            container.appendChild(btn);
+        }
+    }
+
+    function showHome() {
+        hideAllScreens();
+        initHome();
+        document.getElementById('screen-home').classList.remove('hidden');
+    }
+
+    // クイズ開始
+    function startQuiz(level) {
+        currentLevel = level;
+        currentQuestions = quizData.filter(q => q.level === level);
+        currentQuestionIndex = 0;
+        score = 100; // 初期100点
+        
+        document.getElementById('display-level').innerText = `LEVEL ${level}`;
+        updateScoreDisplay();
+
+        hideAllScreens();
+        document.getElementById('screen-quiz').classList.remove('hidden');
+        
+        showQuestion();
+    }
+
+    function updateScoreDisplay() {
+        document.getElementById('display-score').innerText = `残点: ${score}`;
+    }
+
+    // 問題の表示
+    function showQuestion() {
+        isAnswering = false;
+        const q = currentQuestions[currentQuestionIndex];
+        
+        document.getElementById('display-progress').innerText = `${currentQuestionIndex + 1} / 10 問`;
+        document.getElementById('question-text').innerText = q.question;
+        
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+
+        // 選択肢をランダムにシャッフル
+        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    // 答え合わせ（減点処理）
+    function checkAnswer(clickedBtn, selected, correct) {
+        if (isAnswering) return;
+        isAnswering = true;
+
+        const allBtns = document.querySelectorAll('.option-btn');
+        
+        if (selected === correct) {
+            clickedBtn.classList.add('correct');
+        } else {
+            clickedBtn.classList.add('wrong');
+            score -= 10; // 間違えたら10点減点
+            if (score < 0) score = 0;
+            updateScoreDisplay();
+            
+            // 正解のボタンも色を変える
+            allBtns.forEach(btn => {
+                if (btn.innerText === correct) btn.classList.add('correct');
+            });
+        }
+
+        // 1秒待って次の問題へ
+        setTimeout(() => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }, 1000);
+    }
+
+    // 結果表示
+    function showResult() {
+        saveScore(currentLevel, score);
+
+        let comment = "";
+        if (score === 100) {
+            comment = "火影クラス！完璧だってばよ！";
+        } else if (score >= 80) {
+            comment = "上忍クラス！やるじゃん！";
+        } else if (score >= 50) {
+            comment = "中忍クラス！もう少し修行が必要だな！";
+        } else if (score >= 10) {
+            comment = "下忍クラス！基礎からやり直そう！";
+        } else {
+            comment = "アカデミー生クラス…一楽でラーメン食べて出直してこい！";
+        }
+
+        document.getElementById('result-score').innerText = `${score} 点`;
+        document.getElementById('result-comment').innerText = comment;
+
+        hideAllScreens();
+        document.getElementById('screen-result').classList.remove('hidden');
+    }
+
+    // 初期起動
+    window.onload = initHome;
+
+</script>
+</body>
+</html>
