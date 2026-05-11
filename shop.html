@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ショップ - 魔物の塔</title>
+    <style>
+        /* --- 基本設定（他画面と共通） --- */
+        :root {
+            --bg-color: #1a1a1a;
+            --panel-bg: #2d2d2d;
+            --border-color: #4a4a4a;
+            --text-main: #f0f0f0;
+            --text-sub: #a0a0a0;
+            --accent-color: #c9a050; /* ゴールド */
+            --btn-buy: #2980b9; /* 購入ボタン色 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+
+        body { background-color: #000; color: var(--text-main); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+
+        #game-container { width: 100%; max-width: 430px; height: 100%; background-color: var(--bg-color); display: flex; flex-direction: column; position: relative; }
+
+        /* --- ヘッダー --- */
+        .header { background-color: var(--panel-bg); border-bottom: 2px solid var(--accent-color); padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 14px; }
+        .header-box { border: 1px solid var(--border-color); background-color: #222; padding: 4px; text-align: center; border-radius: 4px; }
+        .gold-info { color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: bold; }
+        .gold-img { width: 14px; height: 14px; border-radius: 50%; }
+
+        /* --- 店主エリア（RPG風の対話UI） --- */
+        .shopkeeper-area {
+            display: flex;
+            padding: 15px;
+            background-color: #111;
+            border-bottom: 1px solid var(--border-color);
+            gap: 10px;
+            align-items: center;
+        }
+        
+        /* 店主画像のプレースホルダー */
+        .shopkeeper-img {
+            width: 80px;
+            height: 80px;
+            background-color: #444;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-sub);
+            flex-shrink: 0;
+            /* 店主の画像がある場合はここに background-image: url('shopkeeper.jpg'); などを設定します */
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 吹き出し風メッセージボックス */
+        .speech-bubble {
+            flex: 1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
+        }
+        .speech-bubble::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            border-width: 5px 10px 5px 0;
+            border-style: solid;
+            border-color: transparent var(--border-color) transparent transparent;
+        }
+        .speech-bubble::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -8px;
+            transform: translateY(-50%);
+            border-width: 4px 9px 4px 0;
+            border-style: solid;
+            border-color: transparent var(--panel-bg) transparent transparent;
+        }
+
+        /* --- タブ関連 --- */
+        .tabs { display: flex; background-color: #222; padding: 5px 10px 0; gap: 5px; }
+        .tab { flex: 1; padding: 10px 0; text-align: center; background-color: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-sub); font-size: 13px; cursor: pointer; border-radius: 4px 4px 0 0; border-bottom: none; }
+        .tab.active { background-color: var(--accent-color); color: #000; font-weight: bold; border-color: var(--accent-color); }
+
+        /* --- 商品リスト --- */
+        .shop-list-area { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-color: #111; }
+        
+        .shop-item {
+            display: flex;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .item-icon-box {
+            width: 50px;
+            height: 50px;
+            background-color: #222;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .item-icon { width: 80%; height: 80%; object-fit: contain; }
+
+        .item-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .item-name { font-size: 14px; font-weight: bold; color: var(--text-main); }
+        .item-desc { font-size: 11px; color: var(--text-sub); line-height: 1.3; }
+
+        .item-action { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; flex-shrink: 0; width: 70px; }
+        .item-price { font-size: 12px; color: #ffd700; font-weight: bold; display: flex; align-items: center; gap: 2px; }
+        
+        .btn-buy {
+            background-color: var(--btn-buy);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-buy:active { background-color: #1f6390; }
+
+        /* --- ボトムナビ --- */
+        .bottom-nav { display: flex; background-color: #111; height: 60px; border-top: 1px solid #000; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #777; font-size: 11px; text-decoration: none; border-right: 1px solid #222; }
+        .nav-btn:last-child { border-right: none; }
+        .nav-btn.active { color: var(--accent-color); background-color: #222; }
+        .nav-img { width: 28px; height: 28px; margin-bottom: 2px; border-radius: 6px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="header">
+        <div class="header-box">探索者</div>
+        <div class="header-box">20階</div>
+        <div class="header-box gold-info" id="player-gold">
+            <img src="gold.jpg" class="gold-img"> <span id="gold-amount">1250</span>G
+        </div>
+    </div>
+
+    <div class="shopkeeper-area">
+        <div class="shopkeeper-img">
+            店主画像<br>スペース
+        </div>
+        <div class="speech-bubble" id="shop-message">
+            「よく来たね！<br>塔の攻略に役立つ品が揃ってるよ。」
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchCategory('helper', this)">手助けアイテム</div>
+        <div class="tab" onclick="switchCategory('material', this)">素材</div>
+    </div>
+
+    <div id="shop-list" class="shop-list-area">
+        </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-btn">
+            <img src="home.jpg" alt="ホーム" class="nav-img">
+            <div>ホーム</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="character.jpg" alt="仲間" class="nav-img">
+            <div>仲間</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="battle.jpg" alt="バトル" class="nav-img">
+            <div>バトル</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="mix.jpg" alt="合成" class="nav-img">
+            <div>合成</div>
+        </a>
+        <a href="shop.html" class="nav-btn active">
+            <img src="shop.jpg" alt="ショップ" class="nav-img">
+            <div>ショップ</div>
+        </a>
+        <a href="item.html" class="nav-btn">
+            <img src="item.jpg" alt="アイテム" class="nav-img">
+            <div>アイテム</div>
+        </a>
+    </div>
+</div>
+
+<script>
+    // プレイヤーの所持金（ダミー）
+    let currentGold = 1250;
+
+    // --- ショップの販売データ定義 ---
+    const shopData = {
+        helper: [
+            { id: 201, name: "絶対成功薬", desc: "合成確率を確実に100%にする、非常に貴重な秘薬。", price: 500, icon: "item.jpg" },
+            { id: 202, name: "時短砂時計", desc: "合成にかかる時間を30分短縮する魔法の砂時計。", price: 150, icon: "item.jpg" }
+        ],
+        material: [
+            { id: 1, name: "蒼魔の鉄鉱", desc: "微かな魔力を帯びた硬い鉄鉱石。武器の鍛造に適している。", price: 50, icon: "gray.jpg" },
+            { id: 2, name: "月光石の欠片", desc: "夜になるとほのかに発光する、魔法の媒介に優れた石。", price: 80, icon: "White.jpg" },
+            { id: 3, name: "陽炎の赤砂", desc: "常に熱を帯びており、火属性の合成に重宝される砂。", price: 60, icon: "red.jpg" },
+            { id: 8, name: "万年氷の霜葉", desc: "決して溶けることのない、冷気を放つ氷の葉。", price: 100, icon: "White.jpg" }
+        ]
+    };
+
+    // タブ切り替え処理
+    function switchCategory(category, element) {
+        // タブの見た目更新
+        document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+        if (element) element.classList.add('active');
+
+        // 店主のメッセージ切り替え
+        const messageEl = document.getElementById('shop-message');
+        if (category === 'helper') {
+            messageEl.innerHTML = '「合成を助ける便利なアイテムだよ。<br>絶対成功薬は特におすすめさ！」';
+        } else {
+            messageEl.innerHTML = '「合成用の素材だね。<br>掘り出し物が見つかるかもしれないよ。」';
+        }
+
+        renderItems(category);
+    }
+
+    // 商品リスト描画処理
+    function renderItems(dataKey) {
+        const listArea = document.getElementById('shop-list');
+        listArea.innerHTML = ''; // リセット
+
+        const items = shopData[dataKey];
+
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'shop-item';
+
+            row.innerHTML = `
+                <div class="item-icon-box">
+                    <img src="${item.icon}" class="item-icon" alt="${item.name}">
+                </div>
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-desc">${item.desc}</div>
+                </div>
+                <div class="item-action">
+                    <div class="item-price"><img src="gold.jpg" class="gold-img"> ${item.price}</div>
+                    <button class="btn-buy" onclick="buyItem('${item.name}', ${item.price})">購入</button>
+                </div>
+            `;
+            listArea.appendChild(row);
+        });
+    }
+
+    // 購入処理（ダミー）
+    function buyItem(itemName, price) {
+        if (currentGold >= price) {
+            currentGold -= price;
+            document.getElementById('gold-amount').innerText = currentGold;
+            
+            // 店主のメッセージを変更
+            document.getElementById('shop-message').innerHTML = `「『${itemName}』だね！<br>毎度あり！」`;
+        } else {
+            // お金が足りない場合
+            document.getElementById('shop-message').innerHTML = `「おっと、お金が足りないみたいだね。<br>出直してきな！」`;
+        }
+    }
+
+    // 初期起動
+    window.onload = () => {
+        // 初期所持金を表示
+        document.getElementById('gold-amount').innerText = currentGold;
+        // 初期は「手助けアイテム」を表示
+        renderItems('helper');
+    };
+
+</script>
+
+</body>
+</html>
