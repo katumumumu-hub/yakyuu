@@ -69,14 +69,42 @@
 
         .player-name { grid-column: 1; grid-row: 1; }
         .current-floor { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; }
-        .gold-info { grid-column: 1; grid-row: 2; justify-content: flex-start; gap: 5px; color: #ffd700; font-weight: bold;}
-        .orbs-info { grid-column: 3; grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 2px; align-items: flex-end; padding-right: 10px;}
+        
+        .gold-info { 
+            grid-column: 1; 
+            grid-row: 2; 
+            justify-content: flex-start; 
+            gap: 5px; 
+            color: #ffd700; 
+            font-weight: bold;
+        }
+        
+        .orbs-info { 
+            grid-column: 3; 
+            grid-row: 1 / span 2; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 2px; 
+            align-items: flex-end; 
+            padding-right: 10px;
+        }
 
         .orb-row { display: flex; align-items: center; gap: 5px; font-size: 12px; }
-        .orb { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        .orb.red { background-color: #e74c3c; box-shadow: 0 0 5px #e74c3c; }
-        .orb.white { background-color: #f1f2f6; box-shadow: 0 0 5px #f1f2f6; }
-        .orb.gray { background-color: #7f8c8d; box-shadow: 0 0 5px #7f8c8d; }
+
+        /* 追加：アイコン画像のスタイル設定 */
+        .orb-img {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%; /* 白い背景を丸く切り抜く */
+            object-fit: cover;
+        }
+
+        .gold-img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
 
         /* --- メイン領域（スクロール可能） --- */
         .main-content {
@@ -139,6 +167,14 @@
             border-color: var(--accent-color);
             text-align: center;
         }
+        
+        .mixend-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
         .btn-result {
             background-color: var(--accent-color);
             color: #000;
@@ -217,9 +253,13 @@
             background-color: #222;
         }
 
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
+        /* 追加：ナビゲーションアイコン画像のスタイル */
+        .nav-img {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px; /* アイコンを軽く角丸にする */
+            object-fit: cover;
+            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -234,12 +274,12 @@
             <span style="font-weight: bold; font-size: 16px;">20階</span>
         </div>
         <div class="orbs-info">
-            <div class="orb-row"><span class="orb red"></span> 15</div>
-            <div class="orb-row"><span class="orb white"></span> 10</div>
-            <div class="orb-row"><span class="orb gray"></span> 8</div>
+            <div class="orb-row"><img src="red.jpg" alt="赤" class="orb-img"> 15</div>
+            <div class="orb-row"><img src="White.jpg" alt="白" class="orb-img"> 10</div>
+            <div class="orb-row"><img src="gray.jpg" alt="灰" class="orb-img"> 8</div>
         </div>
         <div class="header-box gold-info">
-            💰 1000G
+            <img src="gold.jpg" alt="G" class="gold-img"> 1000G
         </div>
     </div>
 
@@ -281,7 +321,10 @@
 
         <div class="slot complete">
             <div class="slot-title" style="text-align: left;">スロット 3</div>
-            <div style="font-weight: bold; margin-top: 5px;">合成終了</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px;">
+                <img src="mixend.jpg" alt="合成完了アイコン" class="mixend-img">
+                <span style="font-weight: bold; font-size: 16px;">合成完了</span>
+            </div>
             <button class="btn-result">結果を見る</button>
         </div>
 
@@ -301,27 +344,27 @@
 
     <div class="bottom-nav">
         <div class="nav-btn active">
-            <div class="nav-icon">🏠</div>
+            <img src="home.jpg" alt="ホーム" class="nav-img">
             <div>ホーム</div>
         </div>
         <div class="nav-btn">
-            <div class="nav-icon">👥</div>
+            <img src="character.jpg" alt="仲間" class="nav-img">
             <div>仲間</div>
         </div>
         <div class="nav-btn">
-            <div class="nav-icon">⚔️</div>
+            <img src="battle.jpg" alt="バトル" class="nav-img">
             <div>バトル</div>
         </div>
         <div class="nav-btn">
-            <div class="nav-icon">🧪</div>
+            <img src="mix.jpg" alt="合成" class="nav-img">
             <div>合成</div>
         </div>
         <div class="nav-btn">
-            <div class="nav-icon">🏪</div>
+            <img src="shop.jpg" alt="ショップ" class="nav-img">
             <div>ショップ</div>
         </div>
         <div class="nav-btn">
-            <div class="nav-icon">🎒</div>
+            <img src="item.jpg" alt="アイテム" class="nav-img">
             <div>アイテム</div>
         </div>
     </div>
