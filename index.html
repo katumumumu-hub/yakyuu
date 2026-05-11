@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>アイテム一覧 - 魔物の塔</title>
+    <title>ホーム画面 - 魔物の塔</title>
     <style>
+        /* 全体の基本設定 */
         :root {
             --bg-color: #1a1a1a;
             --panel-bg: #2d2d2d;
             --border-color: #4a4a4a;
             --text-main: #f0f0f0;
             --text-sub: #a0a0a0;
-            --accent-color: #c9a050; /* ゴールド */
-            --highlight-color: #e67e22; /* 選択中 */
-            --btn-use: #27ae60;
+            --accent-color: #c9a050;
+            --slot-bg: #353535;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
 
         body {
             background-color: #000;
@@ -35,175 +40,72 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* --- ヘッダー --- */
+        /* --- ヘッダー領域 --- */
         .header {
             background-color: var(--panel-bg);
             border-bottom: 2px solid var(--accent-color);
             padding: 8px;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto;
             gap: 4px;
             font-size: 14px;
         }
         .header-box {
             border: 1px solid var(--border-color);
             background-color: #222;
-            padding: 4px;
-            text-align: center;
-            border-radius: 4px;
-        }
-        .gold-info { color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .gold-img { width: 14px; height: 14px; border-radius: 50%; }
-
-        /* --- メインカテゴリタブ --- */
-        .tabs {
-            display: flex;
-            background-color: #222;
-            padding: 5px 10px 0;
-            gap: 5px;
-        }
-        .tab {
-            flex: 1;
-            padding: 10px 0;
-            text-align: center;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-sub);
-            font-size: 12px;
-            cursor: pointer;
-            border-radius: 4px 4px 0 0;
-            border-bottom: none;
-        }
-        .tab.active {
-            background-color: var(--accent-color);
-            color: #000;
-            font-weight: bold;
-            border-color: var(--accent-color);
-        }
-
-        /* --- サブカテゴリタブ（装備用） --- */
-        .sub-tabs {
-            display: none; /* 初期状態は非表示 */
-            background-color: #1a1a1a;
-            padding: 8px 15px;
-            gap: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .sub-tab {
-            flex: 1;
-            padding: 6px 0;
-            text-align: center;
-            background-color: #333;
-            border: 1px solid var(--border-color);
-            color: var(--text-sub);
-            font-size: 11px;
-            cursor: pointer;
-            border-radius: 15px; /* 丸みを帯びたデザインでメインタブと区別 */
-        }
-        .sub-tab.active {
-            background-color: var(--highlight-color);
-            color: #fff;
-            font-weight: bold;
-            border-color: var(--highlight-color);
-        }
-
-        /* --- アイテムグリッド --- */
-        .item-list-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: min-content;
-            gap: 8px;
-            align-content: start;
-            background-color: #111;
-        }
-        .item-slot {
-            aspect-ratio: 1/1;
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            position: relative;
+            padding: 4px 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-        }
-        .item-slot.selected {
-            border-color: var(--highlight-color);
-            box-shadow: inset 0 0 10px rgba(230, 126, 34, 0.5);
-        }
-        .item-icon {
-            width: 80%;
-            height: 80%;
-            object-fit: contain;
-        }
-        .item-count {
-            position: absolute;
-            bottom: 2px;
-            right: 4px;
-            font-size: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 0 4px;
+            text-align: center;
             border-radius: 4px;
         }
+        .player-name { grid-column: 1; grid-row: 1; }
+        .current-floor { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; }
+        .gold-info { grid-column: 1; grid-row: 2; justify-content: flex-start; gap: 5px; color: #ffd700; font-weight: bold;}
+        .orbs-info { grid-column: 3; grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 2px; align-items: flex-end; padding-right: 10px;}
+        .orb-row { display: flex; align-items: center; gap: 5px; font-size: 12px; }
 
-        /* --- 詳細プレビューパネル --- */
-        .preview-panel {
-            height: 160px;
-            background-color: var(--panel-bg);
-            border-top: 2px solid var(--accent-color);
-            padding: 12px;
+        .orb-img { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; }
+        .gold-img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+
+        /* --- メイン領域 --- */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
-        .preview-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .preview-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-        .preview-rank {
-            font-size: 12px;
-            background: #444;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .preview-desc {
-            font-size: 13px;
-            color: var(--text-sub);
-            line-height: 1.4;
-            flex: 1;
-            white-space: pre-wrap; /* 改行を反映 */
-        }
-        .preview-actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .btn-use {
-            background-color: var(--btn-use);
-            color: white;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: none; /* 初期は非表示 */
-        }
+        .slot { background-color: var(--slot-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; position: relative; }
+        .slot-title { font-size: 12px; color: var(--text-sub); margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 3px; }
+        
+        .slot.active .slot-inner { display: flex; justify-content: space-between; }
+        .materials { font-size: 13px; line-height: 1.5; }
+        .status-circle { width: 40px; height: 40px; border-radius: 50%; background-color: #222; border: 2px solid var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .slot-footer { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--accent-color); }
 
-        /* --- ボトムナビ --- */
+        .slot.complete { background-color: rgba(201, 160, 80, 0.1); border-color: var(--accent-color); text-align: center; }
+        .mixend-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .btn-result { background-color: var(--accent-color); color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: 10px; width: 80%; cursor: pointer; }
+
+        .slot.locked { background-color: #222; color: #555; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100px; border-style: dashed; }
+
+        /* --- キャラクター領域 --- */
+        .characters-area { display: flex; gap: 8px; padding: 10px; background-color: var(--panel-bg); border-top: 1px solid var(--border-color); }
+        .char-box { flex: 1; aspect-ratio: 3 / 4; background-color: #444; border: 1px solid var(--border-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text-sub); text-align: center; }
+
+        /* --- ボトムナビゲーション --- */
         .bottom-nav {
             display: flex;
             background-color: #111;
-            height: 60px;
             border-top: 1px solid #000;
+            height: 60px;
         }
         .nav-btn {
             flex: 1;
@@ -212,195 +114,119 @@
             align-items: center;
             justify-content: center;
             color: #777;
-            font-size: 10px;
-            text-decoration: none;
+            text-decoration: none; /* リンクの下線を消す */
+            font-size: 11px;
+            border-right: 1px solid #222;
+            cursor: pointer;
         }
-        .nav-btn.active { color: var(--accent-color); }
-        .nav-img { width: 24px; height: 24px; margin-bottom: 2px; border-radius: 4px; }
+        .nav-btn:last-child { border-right: none; }
+        .nav-btn.active { color: var(--accent-color); background-color: #222; }
+        .nav-img { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
 <div id="game-container">
+    
     <div class="header">
-        <div class="header-box">探索者</div>
-        <div class="header-box">20階</div>
+        <div class="header-box player-name">探索者</div>
+        <div class="header-box current-floor">
+            <span style="font-size: 10px; color: var(--text-sub);">現在の階層</span>
+            <span style="font-weight: bold; font-size: 16px;">20階</span>
+        </div>
+        <div class="orbs-info">
+            <div class="orb-row"><img src="red.jpg" alt="赤" class="orb-img"> 15</div>
+            <div class="orb-row"><img src="White.jpg" alt="白" class="orb-img"> 10</div>
+            <div class="orb-row"><img src="gray.jpg" alt="灰" class="orb-img"> 8</div>
+        </div>
         <div class="header-box gold-info">
-            <img src="gold.jpg" class="gold-img"> 1250G
+            <img src="gold.jpg" alt="G" class="gold-img"> 1000G
         </div>
     </div>
 
-    <div class="tabs main-tabs">
-        <div class="tab active" onclick="switchCategory('normal', this)">通常</div>
-        <div class="tab" onclick="switchCategory('helper', this)">手助け</div>
-        <div class="tab" onclick="switchCategory('material', this)">素材</div>
-        <div class="tab" onclick="switchCategory('equipment', this)">装備</div>
+    <div class="main-content">
+        <div class="slot active">
+            <div class="slot-title">スロット 1</div>
+            <div class="slot-inner">
+                <div class="materials">
+                    <div>合成中：</div>
+                    <div>・蒼魔の鉄鉱</div>
+                    <div>・万年氷の霜葉</div>
+                    <div>・鎧蟹の重甲殻</div>
+                </div>
+                <div class="status-circle">稼働中</div>
+            </div>
+            <div class="slot-footer">
+                <span>残り時間　00:45:00</span><span>成功率：60%</span>
+            </div>
+        </div>
+
+        <div class="slot active">
+            <div class="slot-title">スロット 2</div>
+            <div class="slot-inner">
+                <div class="materials">
+                    <div>合成中：</div>
+                    <div>・陽炎の赤砂</div>
+                    <div>・妖精草の太根</div>
+                    <div>・鋭角獣の白牙</div>
+                </div>
+                <div class="status-circle">稼働中</div>
+            </div>
+            <div class="slot-footer">
+                <span>残り時間　02:15:00</span><span>成功率：85%</span>
+            </div>
+        </div>
+
+        <div class="slot complete">
+            <div class="slot-title" style="text-align: left;">スロット 3</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px;">
+                <img src="mixend.jpg" alt="合成完了アイコン" class="mixend-img">
+                <span style="font-weight: bold; font-size: 16px;">合成完了</span>
+            </div>
+            <button class="btn-result">結果を見る</button>
+        </div>
+
+        <div class="slot locked">
+            <div class="slot-title" style="width: 100%; text-align: left;">スロット 4</div>
+            <div style="flex: 1; display: flex; align-items: center;">未開放</div>
+        </div>
     </div>
 
-    <div id="sub-tabs" class="sub-tabs">
-        <div class="sub-tab active" onclick="switchEquipType('weapon', this)">武器</div>
-        <div class="sub-tab" onclick="switchEquipType('armor', this)">防具</div>
-        <div class="sub-tab" onclick="switchEquipType('accessory', this)">アクセ</div>
-    </div>
-
-    <div id="item-list" class="item-list-area">
-        </div>
-
-    <div id="preview" class="preview-panel">
-        <div class="preview-header">
-            <div id="p-name" class="preview-name">アイテムを選択してください</div>
-            <div id="p-rank" class="preview-rank">--</div>
-        </div>
-        <div id="p-desc" class="preview-desc">所持品の詳細がここに表示されます。</div>
-        <div class="preview-actions">
-            <button id="use-button" class="btn-use">使用する</button>
-        </div>
+    <div class="characters-area">
+        <div class="char-box">キャラ 1<br>(火属性)</div>
+        <div class="char-box">キャラ 2<br>(未設定)</div>
+        <div class="char-box">キャラ 3<br>(未設定)</div>
+        <div class="char-box">キャラ 4<br>(未設定)</div>
     </div>
 
     <div class="bottom-nav">
-        <a href="index.html" class="nav-btn"><img src="home.jpg" class="nav-img">ホーム</a>
-        <a href="#" class="nav-btn"><img src="character.jpg" class="nav-img">仲間</a>
-        <a href="#" class="nav-btn"><img src="battle.jpg" class="nav-img">バトル</a>
-        <a href="#" class="nav-btn"><img src="mix.jpg" class="nav-img">合成</a>
-        <a href="#" class="nav-btn"><img src="shop.jpg" class="nav-img">ショップ</a>
-        <a href="#" class="nav-btn active"><img src="item.jpg" class="nav-img">アイテム</a>
+        <a href="index.html" class="nav-btn active">
+            <img src="home.jpg" alt="ホーム" class="nav-img">
+            <div>ホーム</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="character.jpg" alt="仲間" class="nav-img">
+            <div>仲間</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="battle.jpg" alt="バトル" class="nav-img">
+            <div>バトル</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="mix.jpg" alt="合成" class="nav-img">
+            <div>合成</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="shop.jpg" alt="ショップ" class="nav-img">
+            <div>ショップ</div>
+        </a>
+        <a href="item.html" class="nav-btn">
+            <img src="item.jpg" alt="アイテム" class="nav-img">
+            <div>アイテム</div>
+        </a>
     </div>
+
 </div>
-
-<script>
-    // --- データ定義 ---
-    const itemData = {
-        normal: [
-            { id: 101, name: "HPポーションS", rank: "D", desc: "体力を100回復する。\n合成でのみ入手可能な基本薬。", count: 5, type: "use" },
-            { id: 102, name: "MPポーションS", rank: "D", desc: "魔力を50回復する。\n合成でのみ入手可能な基本薬。", count: 3, type: "use" },
-            { id: 103, name: "力の雫", rank: "B", desc: "攻撃力が永続的に1上昇する貴重な強化アイテム。", count: 1, type: "use" }
-        ],
-        helper: [
-            { id: 201, name: "絶対成功薬", rank: "S", desc: "合成確率を100%にする。\nショップでも購入可能な貴重な薬。", count: 3, type: "view" },
-            { id: 202, name: "時短砂時計", rank: "C", desc: "合成時間を30分短縮する。", count: 2, type: "view" }
-        ],
-        material: [
-            { id: 1, name: "蒼魔の鉄鉱", rank: "C", desc: "微かな魔力を帯びた硬い鉄鉱石。\n武器の鍛造に適している。", count: 12, type: "view", icon: "gray.jpg" },
-            { id: 2, name: "月光石の欠片", rank: "B", desc: "夜になるとほのかに発光する、魔法の媒介に優れた石。", count: 4, type: "view", icon: "White.jpg" },
-            { id: 3, name: "陽炎の赤砂", rank: "C", desc: "常に熱を帯びており、火属性の合成に重宝される。", count: 8, type: "view", icon: "red.jpg" },
-            { id: 8, name: "万年氷の霜葉", rank: "B", desc: "決して溶けることのない、冷気を放つ氷の葉。", count: 2, type: "view", icon: "White.jpg" }
-        ],
-        // 追加: 装備データ群 (すべて閲覧のみ)
-        weapon: [
-            { id: 301, name: "見習いの短剣", rank: "F", desc: "【火属性】\nステータス: 攻撃+10\n扱いやすい基本的な短剣。", count: 1, type: "view" },
-            { id: 302, name: "重装兵の大剣", rank: "C", desc: "【無属性】\nステータス: 攻撃+45 俊敏性-5\n重く威力の高い剣。", count: 1, type: "view" },
-            { id: 303, name: "雷鳴の杖", rank: "A", desc: "【雷属性】\nステータス: 魔法攻撃+120\n雷晶を埋め込んだ強力な魔法の杖。", count: 1, type: "view" }
-        ],
-        armor: [
-            { id: 401, name: "冒険者の胴着", rank: "F", desc: "【無属性】\nステータス: 防御+8\n防御部位: 胴\n動きやすい軽装の鎧。", count: 1, type: "view" },
-            { id: 402, name: "重甲殻の兜", rank: "C", desc: "【水属性】\nステータス: 防御+25 魔法防御+10\n防御部位: 頭\n鎧蟹の素材から作られた硬い兜。", count: 1, type: "view" }
-        ],
-        accessory: [
-            { id: 501, name: "命の指輪", rank: "D", desc: "【無属性】\nステータス: HP+50\n装備部位: 指\n僅かに生命力を高める指輪。", count: 1, type: "view" },
-            { id: 502, name: "疾風の耳飾り", rank: "B", desc: "【風属性】\nステータス: 俊敏性+20 運+5\n装備部位: 耳\n風の魔力を帯びた耳飾り。", count: 1, type: "view" }
-        ]
-    };
-
-    let currentCategory = 'normal'; // 現在のメインタブ状態
-    let currentEquipType = 'weapon'; // 現在の装備サブタブ状態
-
-    // --- 関数定義 ---
-
-    // メインカテゴリ切り替え
-    function switchCategory(category, element) {
-        currentCategory = category;
-        
-        // タブの見た目更新
-        document.querySelectorAll('.main-tabs .tab').forEach(t => t.classList.remove('active'));
-        if (element) element.classList.add('active');
-
-        const subTabsEl = document.getElementById('sub-tabs');
-        
-        // 装備タブが選ばれたらサブタブを表示し、現在の装備タイプを描画
-        if (category === 'equipment') {
-            subTabsEl.style.display = 'flex';
-            renderItems(currentEquipType);
-        } else {
-            // それ以外はサブタブを隠して、選ばれたカテゴリを描画
-            subTabsEl.style.display = 'none';
-            renderItems(category);
-        }
-        
-        resetPreview();
-    }
-
-    // 装備サブカテゴリ切り替え
-    function switchEquipType(type, element) {
-        currentEquipType = type;
-
-        // サブタブの見た目更新
-        document.querySelectorAll('.sub-tabs .sub-tab').forEach(t => t.classList.remove('active'));
-        if (element) element.classList.add('active');
-
-        renderItems(type);
-        resetPreview();
-    }
-
-    // アイテムリスト描画
-    function renderItems(dataKey) {
-        const listArea = document.getElementById('item-list');
-        listArea.innerHTML = '';
-
-        const items = itemData[dataKey];
-
-        items.forEach(item => {
-            const slot = document.createElement('div');
-            slot.className = 'item-slot';
-            slot.onclick = () => selectItem(item, slot);
-
-            const iconSrc = item.icon || 'item.jpg';
-            slot.innerHTML = `
-                <img src="${iconSrc}" class="item-icon">
-                <div class="item-count">${item.count}</div>
-            `;
-            listArea.appendChild(slot);
-        });
-
-        // 空きスロット
-        for (let i = items.length; i < 20; i++) {
-            const empty = document.createElement('div');
-            empty.className = 'item-slot';
-            empty.style.opacity = "0.3";
-            listArea.appendChild(empty);
-        }
-    }
-
-    // アイテム選択
-    function selectItem(item, element) {
-        document.querySelectorAll('.item-slot').forEach(s => s.classList.remove('selected'));
-        element.classList.add('selected');
-
-        document.getElementById('p-name').innerText = item.name;
-        document.getElementById('p-rank').innerText = "Rank " + item.rank;
-        document.getElementById('p-desc').innerText = item.desc;
-
-        const useBtn = document.getElementById('use-button');
-        if (item.type === 'use') {
-            useBtn.style.display = 'block';
-        } else {
-            useBtn.style.display = 'none';
-        }
-    }
-
-    // プレビューリセット
-    function resetPreview() {
-        document.getElementById('p-name').innerText = "アイテムを選択してください";
-        document.getElementById('p-rank').innerText = "--";
-        document.getElementById('p-desc').innerText = "所持品の詳細がここに表示されます。";
-        document.getElementById('use-button').style.display = 'none';
-    }
-
-    // 初期起動
-    window.onload = () => {
-        renderItems('normal');
-    };
-
-</script>
 
 </body>
 </html>
