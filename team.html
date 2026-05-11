@@ -70,6 +70,7 @@
             position: relative;
             font-size: 11px;
             text-align: center;
+            transition: 0.1s;
         }
         .char-slot.empty { border-style: dashed; color: #555; }
         .char-slot.selected { border-color: var(--highlight-color); box-shadow: inset 0 0 10px rgba(230, 126, 34, 0.5); }
@@ -106,7 +107,7 @@
             background-color: var(--bg-color);
         }
 
-        /* --- アクションボタン（セット解除/セット） --- */
+        /* --- アクションボタン（セット/解除） --- */
         .action-area {
             padding: 8px 15px;
             background-color: #111;
@@ -122,13 +123,15 @@
             border: none;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
             color: white;
             display: none; /* 初期非表示 */
         }
-        .btn-action.mode-set { background-color: var(--btn-set); display: block; }
-        .btn-action.mode-remove { background-color: var(--btn-remove); display: block; }
+        .btn-action.mode-set { background-color: var(--btn-set); display: block; box-shadow: 0 4px 0 #1e8449; }
+        .btn-action.mode-set:active { transform: translateY(4px); box-shadow: 0 0 0 #1e8449; }
+        .btn-action.mode-remove { background-color: var(--btn-remove); display: block; box-shadow: 0 4px 0 #922b21; }
+        .btn-action.mode-remove:active { transform: translateY(4px); box-shadow: 0 0 0 #922b21; }
 
         /* --- キャラ詳細パネル（下部） --- */
         .details-area {
@@ -160,6 +163,34 @@
         .nav-btn:last-child { border-right: none; }
         .nav-btn.active { color: var(--accent-color); background-color: #222; }
         .nav-img { width: 28px; height: 28px; margin-bottom: 2px; border-radius: 6px; object-fit: cover; }
+
+        /* --- 交代用モーダル（ポップアップ） --- */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none; /* 初期非表示 */
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .modal-box {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px 15px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(201, 160, 80, 0.3);
+        }
+        .modal-title { font-size: 18px; font-weight: bold; color: var(--accent-color); margin-bottom: 5px; }
+        .modal-desc { font-size: 13px; color: var(--text-sub); margin-bottom: 15px; }
+        .modal-candidates { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+        .modal-candidates .char-slot:hover { border-color: var(--highlight-color); }
+        .btn-cancel {
+            background-color: #555; color: white; border: none; padding: 10px 30px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+        .btn-cancel:active { background-color: #444; }
     </style>
 </head>
 <body>
@@ -187,7 +218,7 @@
         </div>
 
     <div class="action-area">
-        <button id="action-btn" class="btn-action" onclick="handleAction()">キャラを選択</button>
+        <button id="action-btn" class="btn-action" onclick="handleAction()">アクション</button>
     </div>
 
     <div class="details-area">
@@ -233,11 +264,21 @@
             <div>アイテム</div>
         </a>
     </div>
+
+    <div id="swap-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">交代しますか？</div>
+            <div class="modal-desc">現在の編成と入れ替えるメンバーを選択してください。</div>
+            <div id="swap-candidates" class="modal-candidates">
+                </div>
+            <button class="btn-cancel" onclick="closeSwapModal()">キャンセル</button>
+        </div>
+    </div>
+
 </div>
 
 <script>
     // --- キャラクターデータ ---
-    // ゲーム設定に基づき、初期は火属性のみ。UI確認用にダミーを追加。
     const characters = [
         { id: 1, name: "焔の剣士", attr: "火", iconAttr: "attr-fire", hp: 1250, mp: 522, atk: 150, def: 120, matk: 80, mdef: 90, spd: 110, luk: 50 },
         { id: 2, name: "火炎の魔道士", attr: "火", iconAttr: "attr-fire", hp: 800, mp: 900, atk: 40, def: 60, matk: 200, mdef: 150, spd: 95, luk: 60 },
@@ -247,27 +288,23 @@
         { id: 6, name: "光の聖職者", attr: "光", iconAttr: "attr-light", hp: 1000, mp: 800, atk: 60, def: 100, matk: 120, mdef: 160, spd: 90, luk: 90 }
     ];
 
-    // --- パーティセットデータ ---
-    // 5セット分。各セット最大4人。初期状態は全て1番のキャラのみ配置。
+    // --- パーティセットデータ（5セット分） ---
     let partySets = [
-        [1, null, null, null], // Set 1
-        [1, 2, null, null],    // Set 2 (UIテスト用)
+        [1, 2, 3, 4], // Set 1 (UIテスト用にフル編成にしています)
+        [1, null, null, null],    // Set 2
         [1, null, null, null], // Set 3
         [1, null, null, null], // Set 4
         [1, null, null, null]  // Set 5
     ];
 
-    let currentSetIndex = 0; // 現在表示中のセット (0〜4)
-    
-    // 選択状態の管理
-    let selectedType = null; // 'party' または 'roster'
-    let selectedId = null;   // 選択したキャラのID
-    let selectedSlotIndex = null; // パーティ枠を選んだ場合のスロット番号(0-3)
+    let currentSetIndex = 0; 
+    let selectedType = null; 
+    let selectedId = null;   
+    let selectedSlotIndex = null; 
+    let pendingSwapId = null; // 交代待ちのキャラID
 
     // --- 初期化 ---
-    window.onload = () => {
-        renderAll();
-    };
+    window.onload = () => { renderAll(); };
 
     // --- 描画処理 ---
     function renderAll() {
@@ -277,11 +314,9 @@
         updateActionButton();
     }
 
-    // パーティ枠（上部）の描画
     function renderParty() {
         const container = document.getElementById('party-slots-container');
         container.innerHTML = '';
-        
         const currentParty = partySets[currentSetIndex];
 
         for (let i = 0; i < 4; i++) {
@@ -304,13 +339,11 @@
                 slot.classList.add('empty');
                 slot.innerText = "空き";
             }
-
             slot.onclick = () => selectSlot('party', charId, i);
             container.appendChild(slot);
         }
     }
 
-    // 手持ち一覧（中央）の描画
     function renderRoster() {
         const container = document.getElementById('roster-container');
         container.innerHTML = '';
@@ -322,18 +355,15 @@
             if (selectedType === 'roster' && selectedId === char.id) {
                 slot.classList.add('selected');
             }
-
             slot.innerHTML = `
                 <div class="attr-icon ${char.iconAttr}">${char.attr[0]}</div>
                 <img src="character.jpg" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; margin-bottom: 4px;">
                 <div style="font-size:10px;">${char.name}</div>
             `;
-
             slot.onclick = () => selectSlot('roster', char.id, null);
             container.appendChild(slot);
         });
 
-        // 枠を埋めるためのダミー空き枠
         for (let i = characters.length; i < 12; i++) {
             const empty = document.createElement('div');
             empty.className = 'char-slot empty';
@@ -343,41 +373,26 @@
     }
 
     // --- 選択・操作ロジック ---
-    
-    // セットの切り替え
     function changeSet(direction) {
         currentSetIndex += direction;
         if (currentSetIndex < 0) currentSetIndex = 4;
         if (currentSetIndex > 4) currentSetIndex = 0;
-        
-        // セットを切り替えたら選択状態をリセット
-        selectedType = null;
-        selectedId = null;
-        selectedSlotIndex = null;
-        
-        resetDetails();
-        renderAll();
+        selectedType = null; selectedId = null; selectedSlotIndex = null;
+        resetDetails(); renderAll();
     }
 
-    // スロット（パーティ・手持ち）の選択
     function selectSlot(type, charId, index) {
         selectedType = type;
         selectedId = charId;
         selectedSlotIndex = index;
-
         if (charId) {
-            const char = characters.find(c => c.id === charId);
-            updateDetails(char);
+            updateDetails(characters.find(c => c.id === charId));
         } else {
             resetDetails();
         }
-        
-        renderParty();
-        renderRoster();
-        updateActionButton();
+        renderParty(); renderRoster(); updateActionButton();
     }
 
-    // 詳細パネルの更新
     function updateDetails(char) {
         document.getElementById('det-name').innerText = char.name;
         document.getElementById('det-attr').innerText = `【${char.attr}属性】`;
@@ -399,62 +414,97 @@
         document.getElementById('det-stats').style.display = 'none';
     }
 
-    // アクションボタン（セット/解除）の見た目と文字の更新
     function updateActionButton() {
         const btn = document.getElementById('action-btn');
-        btn.className = 'btn-action'; // リセット
+        btn.className = 'btn-action'; 
 
         if (selectedType === 'party' && selectedId !== null) {
             btn.classList.add('mode-remove');
-            btn.innerText = "編成から外す";
+            btn.innerText = "解除";
         } else if (selectedType === 'roster' && selectedId !== null) {
             btn.classList.add('mode-set');
-            btn.innerText = "編成にセット";
+            btn.innerText = "セット";
         } else {
-            // 空き枠や未選択時はボタンを隠す
             btn.style.display = 'none';
         }
     }
 
-    // アクションボタン押下時の処理
+    // アクションボタン（セット/解除）押下時
     function handleAction() {
         const currentParty = partySets[currentSetIndex];
 
         if (selectedType === 'party') {
-            // --- 解除処理 ---
-            // パーティ人数の確認 (最小1人ルール)
+            // 解除
             const count = currentParty.filter(id => id !== null).length;
             if (count <= 1) {
                 alert("パーティには最低1人の戦闘メンバーが必要です！");
                 return;
             }
-            // 解除
             currentParty[selectedSlotIndex] = null;
-            selectedId = null; // 選択状態クリア
-            
+            selectedId = null; 
         } else if (selectedType === 'roster') {
-            // --- セット処理 ---
-            // 既に同じキャラがセットにいるかチェック（各セットでキャラ被り不可とする場合）
+            // セット
             if (currentParty.includes(selectedId)) {
                 alert("そのキャラクターは既にこのセットに編成されています！");
                 return;
             }
 
-            // 空いているスロットを探す
             const emptyIndex = currentParty.indexOf(null);
             if (emptyIndex === -1) {
-                alert("パーティが満員です！先に誰かを外してください。");
-                return;
+                // 【満員時】交代モーダルを開く
+                openSwapModal(selectedId);
+                return; // ここで処理を中断し、モーダル上の操作に委ねる
+            } else {
+                currentParty[emptyIndex] = selectedId;
             }
-            
-            // セット
-            currentParty[emptyIndex] = selectedId;
         }
+        selectedType = null; resetDetails(); renderAll();
+    }
 
-        // 状態を更新して再描画
-        selectedType = null;
-        resetDetails();
-        renderAll();
+    // --- 交代モーダル関連の処理 ---
+    function openSwapModal(newCharId) {
+        pendingSwapId = newCharId;
+        const container = document.getElementById('swap-candidates');
+        container.innerHTML = '';
+        const currentParty = partySets[currentSetIndex];
+
+        // 現在のパーティメンバーをモーダルに並べる
+        for (let i = 0; i < 4; i++) {
+            const charId = currentParty[i];
+            const char = characters.find(c => c.id === charId);
+            const slot = document.createElement('div');
+            slot.className = 'char-slot';
+            slot.style.cursor = 'pointer'; // クリックできることを強調
+            slot.innerHTML = `
+                <div class="attr-icon ${char.iconAttr}">${char.attr[0]}</div>
+                <img src="character.jpg" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; margin-bottom: 4px;">
+                <div style="font-size:10px;">${char.name}</div>
+            `;
+            // クリックでそのメンバーと入れ替える
+            slot.onclick = () => executeSwap(i);
+            container.appendChild(slot);
+        }
+        // モーダルを表示
+        document.getElementById('swap-modal').style.display = 'flex';
+    }
+
+    function closeSwapModal() {
+        document.getElementById('swap-modal').style.display = 'none';
+        pendingSwapId = null; // キャンセル時はIDをリセット
+    }
+
+    function executeSwap(partyIndex) {
+        if (pendingSwapId !== null) {
+            // 選択したパーティ枠に新しいキャラIDを上書き
+            partySets[currentSetIndex][partyIndex] = pendingSwapId;
+            closeSwapModal();
+            
+            // 選択状態をリセットして画面更新
+            selectedType = null;
+            selectedId = null;
+            resetDetails();
+            renderAll();
+        }
     }
 </script>
 
