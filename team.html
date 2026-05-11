@@ -115,6 +115,7 @@
             justify-content: center;
             flex-shrink: 0;
             border-top: 1px solid var(--border-color);
+            min-height: 52px; /* ボタンが消えても高さが変わらないように調整 */
         }
         .btn-action {
             width: 100%;
@@ -288,10 +289,10 @@
         { id: 6, name: "光の聖職者", attr: "光", iconAttr: "attr-light", hp: 1000, mp: 800, atk: 60, def: 100, matk: 120, mdef: 160, spd: 90, luk: 90 }
     ];
 
-    // --- パーティセットデータ（5セット分） ---
+    // --- パーティセットデータ ---
     let partySets = [
-        [1, 2, 3, 4], // Set 1 (UIテスト用にフル編成にしています)
-        [1, null, null, null],    // Set 2
+        [1, 2, 3, 4], // Set 1 (フル編成)
+        [1, null, null, null], // Set 2
         [1, null, null, null], // Set 3
         [1, null, null, null], // Set 4
         [1, null, null, null]  // Set 5
@@ -301,12 +302,10 @@
     let selectedType = null; 
     let selectedId = null;   
     let selectedSlotIndex = null; 
-    let pendingSwapId = null; // 交代待ちのキャラID
+    let pendingSwapId = null; 
 
-    // --- 初期化 ---
     window.onload = () => { renderAll(); };
 
-    // --- 描画処理 ---
     function renderAll() {
         document.getElementById('set-title-display').innerText = `セット ${currentSetIndex + 1}`;
         renderParty();
@@ -372,7 +371,6 @@
         }
     }
 
-    // --- 選択・操作ロジック ---
     function changeSet(direction) {
         currentSetIndex += direction;
         if (currentSetIndex < 0) currentSetIndex = 4;
@@ -417,6 +415,8 @@
     function updateActionButton() {
         const btn = document.getElementById('action-btn');
         btn.className = 'btn-action'; 
+        // 非表示状態を解除する（これがないとボタンが現れない）
+        btn.style.display = ''; 
 
         if (selectedType === 'party' && selectedId !== null) {
             btn.classList.add('mode-remove');
@@ -425,16 +425,14 @@
             btn.classList.add('mode-set');
             btn.innerText = "セット";
         } else {
-            btn.style.display = 'none';
+            btn.style.display = 'none'; // 条件に合わない時は非表示
         }
     }
 
-    // アクションボタン（セット/解除）押下時
     function handleAction() {
         const currentParty = partySets[currentSetIndex];
 
         if (selectedType === 'party') {
-            // 解除
             const count = currentParty.filter(id => id !== null).length;
             if (count <= 1) {
                 alert("パーティには最低1人の戦闘メンバーが必要です！");
@@ -443,7 +441,6 @@
             currentParty[selectedSlotIndex] = null;
             selectedId = null; 
         } else if (selectedType === 'roster') {
-            // セット
             if (currentParty.includes(selectedId)) {
                 alert("そのキャラクターは既にこのセットに編成されています！");
                 return;
@@ -451,9 +448,8 @@
 
             const emptyIndex = currentParty.indexOf(null);
             if (emptyIndex === -1) {
-                // 【満員時】交代モーダルを開く
                 openSwapModal(selectedId);
-                return; // ここで処理を中断し、モーダル上の操作に委ねる
+                return; 
             } else {
                 currentParty[emptyIndex] = selectedId;
             }
@@ -461,45 +457,38 @@
         selectedType = null; resetDetails(); renderAll();
     }
 
-    // --- 交代モーダル関連の処理 ---
     function openSwapModal(newCharId) {
         pendingSwapId = newCharId;
         const container = document.getElementById('swap-candidates');
         container.innerHTML = '';
         const currentParty = partySets[currentSetIndex];
 
-        // 現在のパーティメンバーをモーダルに並べる
         for (let i = 0; i < 4; i++) {
             const charId = currentParty[i];
             const char = characters.find(c => c.id === charId);
             const slot = document.createElement('div');
             slot.className = 'char-slot';
-            slot.style.cursor = 'pointer'; // クリックできることを強調
+            slot.style.cursor = 'pointer'; 
             slot.innerHTML = `
                 <div class="attr-icon ${char.iconAttr}">${char.attr[0]}</div>
                 <img src="character.jpg" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; margin-bottom: 4px;">
                 <div style="font-size:10px;">${char.name}</div>
             `;
-            // クリックでそのメンバーと入れ替える
             slot.onclick = () => executeSwap(i);
             container.appendChild(slot);
         }
-        // モーダルを表示
         document.getElementById('swap-modal').style.display = 'flex';
     }
 
     function closeSwapModal() {
         document.getElementById('swap-modal').style.display = 'none';
-        pendingSwapId = null; // キャンセル時はIDをリセット
+        pendingSwapId = null; 
     }
 
     function executeSwap(partyIndex) {
         if (pendingSwapId !== null) {
-            // 選択したパーティ枠に新しいキャラIDを上書き
             partySets[currentSetIndex][partyIndex] = pendingSwapId;
             closeSwapModal();
-            
-            // 選択状態をリセットして画面更新
             selectedType = null;
             selectedId = null;
             resetDetails();
