@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>仲間 - 魔物の塔</title>
+    <style>
+        /* --- 基本設定（他画面と共通） --- */
+        :root {
+            --bg-color: #1a1a1a;
+            --panel-bg: #2d2d2d;
+            --border-color: #4a4a4a;
+            --text-main: #f0f0f0;
+            --text-sub: #a0a0a0;
+            --accent-color: #c9a050; /* ゴールド */
+            --highlight-color: #e67e22; /* 選択中 */
+            --btn-set: #27ae60;
+            --btn-remove: #c0392b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+
+        body { background-color: #000; color: var(--text-main); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+
+        #game-container { width: 100%; max-width: 430px; height: 100%; background-color: var(--bg-color); display: flex; flex-direction: column; position: relative; }
+
+        /* --- ヘッダー --- */
+        .header { background-color: var(--panel-bg); border-bottom: 2px solid var(--accent-color); padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 14px; flex-shrink: 0; }
+        .header-box { border: 1px solid var(--border-color); background-color: #222; padding: 4px; text-align: center; border-radius: 4px; }
+        .gold-info { color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: bold;}
+        .gold-img { width: 14px; height: 14px; border-radius: 50%; }
+
+        /* --- パーティ編成エリア（上部） --- */
+        .party-top-area {
+            background-color: #111;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        
+        .set-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            background-color: #222;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px;
+        }
+        .set-btn { background: none; border: none; color: var(--accent-color); font-size: 18px; padding: 0 15px; cursor: pointer; font-weight: bold; }
+        .set-btn:active { transform: scale(0.9); }
+        .set-title { font-weight: bold; font-size: 15px; }
+
+        .party-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .char-slot {
+            aspect-ratio: 3/4;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            font-size: 11px;
+            text-align: center;
+        }
+        .char-slot.empty { border-style: dashed; color: #555; }
+        .char-slot.selected { border-color: var(--highlight-color); box-shadow: inset 0 0 10px rgba(230, 126, 34, 0.5); }
+        
+        .attr-icon {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+        }
+        .attr-fire { background-color: #e74c3c; }
+        .attr-water { background-color: #3498db; }
+        .attr-thunder { background-color: #f1c40f; color: #000; }
+        .attr-light { background-color: #ecf0f1; color: #000; }
+        .attr-dark { background-color: #8e44ad; }
+
+        /* --- 手持ちキャラ一覧（中央・スクロール） --- */
+        .roster-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: min-content;
+            gap: 8px;
+            background-color: var(--bg-color);
+        }
+
+        /* --- アクションボタン（セット解除/セット） --- */
+        .action-area {
+            padding: 8px 15px;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            flex-shrink: 0;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-action {
+            width: 100%;
+            max-width: 200px;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            color: white;
+            display: none; /* 初期非表示 */
+        }
+        .btn-action.mode-set { background-color: var(--btn-set); display: block; }
+        .btn-action.mode-remove { background-color: var(--btn-remove); display: block; }
+
+        /* --- キャラ詳細パネル（下部） --- */
+        .details-area {
+            height: 130px;
+            background-color: var(--panel-bg);
+            border-top: 2px solid var(--accent-color);
+            padding: 10px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .details-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-bottom: 4px; }
+        .details-name { font-weight: bold; font-size: 15px; color: var(--accent-color); }
+        .details-attr { font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #444; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px 8px;
+            font-size: 11px;
+        }
+        .stat-item { display: flex; justify-content: space-between; color: var(--text-sub); }
+        .stat-val { color: var(--text-main); font-weight: bold; }
+
+        /* --- ボトムナビ --- */
+        .bottom-nav { display: flex; background-color: #111; height: 60px; border-top: 1px solid #000; flex-shrink: 0; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #777; font-size: 11px; text-decoration: none; border-right: 1px solid #222; }
+        .nav-btn:last-child { border-right: none; }
+        .nav-btn.active { color: var(--accent-color); background-color: #222; }
+        .nav-img { width: 28px; height: 28px; margin-bottom: 2px; border-radius: 6px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="header">
+        <div class="header-box">探索者</div>
+        <div class="header-box">20階</div>
+        <div class="header-box gold-info">
+            <img src="gold.jpg" class="gold-img"> 1250G
+        </div>
+    </div>
+
+    <div class="party-top-area">
+        <div class="set-selector">
+            <button class="set-btn" onclick="changeSet(-1)">◀</button>
+            <div class="set-title" id="set-title-display">セット 1</div>
+            <button class="set-btn" onclick="changeSet(1)">▶</button>
+        </div>
+        <div class="party-slots" id="party-slots-container">
+            </div>
+    </div>
+
+    <div class="roster-area" id="roster-container">
+        </div>
+
+    <div class="action-area">
+        <button id="action-btn" class="btn-action" onclick="handleAction()">キャラを選択</button>
+    </div>
+
+    <div class="details-area">
+        <div class="details-header">
+            <div class="details-name" id="det-name">キャラを選択してください</div>
+            <div class="details-attr" id="det-attr">--</div>
+        </div>
+        <div class="stats-grid" id="det-stats" style="display: none;">
+            <div class="stat-item">HP <span class="stat-val" id="det-hp">0</span></div>
+            <div class="stat-item">MP <span class="stat-val" id="det-mp">0</span></div>
+            <div class="stat-item">攻撃 <span class="stat-val" id="det-atk">0</span></div>
+            <div class="stat-item">防御 <span class="stat-val" id="det-def">0</span></div>
+            <div class="stat-item">魔攻 <span class="stat-val" id="det-matk">0</span></div>
+            <div class="stat-item">魔防 <span class="stat-val" id="det-mdef">0</span></div>
+            <div class="stat-item">俊敏 <span class="stat-val" id="det-spd">0</span></div>
+            <div class="stat-item">運 <span class="stat-val" id="det-luk">0</span></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-btn">
+            <img src="home.jpg" alt="ホーム" class="nav-img">
+            <div>ホーム</div>
+        </a>
+        <a href="team.html" class="nav-btn active">
+            <img src="character.jpg" alt="仲間" class="nav-img">
+            <div>仲間</div>
+        </a>
+        <a href="#" class="nav-btn">
+            <img src="battle.jpg" alt="バトル" class="nav-img">
+            <div>バトル</div>
+        </a>
+        <a href="mix.html" class="nav-btn">
+            <img src="mix.jpg" alt="合成" class="nav-img">
+            <div>合成</div>
+        </a>
+        <a href="shop.html" class="nav-btn">
+            <img src="shop.jpg" alt="ショップ" class="nav-img">
+            <div>ショップ</div>
+        </a>
+        <a href="item.html" class="nav-btn">
+            <img src="item.jpg" alt="アイテム" class="nav-img">
+            <div>アイテム</div>
+        </a>
+    </div>
+</div>
+
+<script>
+    // --- キャラクターデータ ---
+    // ゲーム設定に基づき、初期は火属性のみ。UI確認用にダミーを追加。
+    const characters = [
+        { id: 1, name: "焔の剣士", attr: "火", iconAttr: "attr-fire", hp: 1250, mp: 522, atk: 150, def: 120, matk: 80, mdef: 90, spd: 110, luk: 50 },
+        { id: 2, name: "火炎の魔道士", attr: "火", iconAttr: "attr-fire", hp: 800, mp: 900, atk: 40, def: 60, matk: 200, mdef: 150, spd: 95, luk: 60 },
+        { id: 3, name: "流水の弓使い", attr: "水", iconAttr: "attr-water", hp: 950, mp: 400, atk: 130, def: 80, matk: 50, mdef: 100, spd: 140, luk: 80 },
+        { id: 4, name: "雷鳴の騎士", attr: "雷", iconAttr: "attr-thunder", hp: 1400, mp: 300, atk: 160, def: 150, matk: 60, mdef: 80, spd: 100, luk: 40 },
+        { id: 5, name: "暗黒の盗賊", attr: "闇", iconAttr: "attr-dark", hp: 850, mp: 200, atk: 140, def: 70, matk: 40, mdef: 60, spd: 160, luk: 120 },
+        { id: 6, name: "光の聖職者", attr: "光", iconAttr: "attr-light", hp: 1000, mp: 800, atk: 60, def: 100, matk: 120, mdef: 160, spd: 90, luk: 90 }
+    ];
+
+    // --- パーティセットデータ ---
+    // 5セット分。各セット最大4人。初期状態は全て1番のキャラのみ配置。
+    let partySets = [
+        [1, null, null, null], // Set 1
+        [1, 2, null, null],    // Set 2 (UIテスト用)
+        [1, null, null, null], // Set 3
+        [1, null, null, null], // Set 4
+        [1, null, null, null]  // Set 5
+    ];
+
+    let currentSetIndex = 0; // 現在表示中のセット (0〜4)
+    
+    // 選択状態の管理
+    let selectedType = null; // 'party' または 'roster'
+    let selectedId = null;   // 選択したキャラのID
+    let selectedSlotIndex = null; // パーティ枠を選んだ場合のスロット番号(0-3)
+
+    // --- 初期化 ---
+    window.onload = () => {
+        renderAll();
+    };
+
+    // --- 描画処理 ---
+    function renderAll() {
+        document.getElementById('set-title-display').innerText = `セット ${currentSetIndex + 1}`;
+        renderParty();
+        renderRoster();
+        updateActionButton();
+    }
+
+    // パーティ枠（上部）の描画
+    function renderParty() {
+        const container = document.getElementById('party-slots-container');
+        container.innerHTML = '';
+        
+        const currentParty = partySets[currentSetIndex];
+
+        for (let i = 0; i < 4; i++) {
+            const charId = currentParty[i];
+            const slot = document.createElement('div');
+            slot.className = 'char-slot';
+            
+            if (selectedType === 'party' && selectedSlotIndex === i) {
+                slot.classList.add('selected');
+            }
+
+            if (charId) {
+                const char = characters.find(c => c.id === charId);
+                slot.innerHTML = `
+                    <div class="attr-icon ${char.iconAttr}">${char.attr[0]}</div>
+                    <img src="character.jpg" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; margin-bottom: 4px;">
+                    <div style="font-size:10px;">${char.name}</div>
+                `;
+            } else {
+                slot.classList.add('empty');
+                slot.innerText = "空き";
+            }
+
+            slot.onclick = () => selectSlot('party', charId, i);
+            container.appendChild(slot);
+        }
+    }
+
+    // 手持ち一覧（中央）の描画
+    function renderRoster() {
+        const container = document.getElementById('roster-container');
+        container.innerHTML = '';
+
+        characters.forEach(char => {
+            const slot = document.createElement('div');
+            slot.className = 'char-slot';
+            
+            if (selectedType === 'roster' && selectedId === char.id) {
+                slot.classList.add('selected');
+            }
+
+            slot.innerHTML = `
+                <div class="attr-icon ${char.iconAttr}">${char.attr[0]}</div>
+                <img src="character.jpg" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; margin-bottom: 4px;">
+                <div style="font-size:10px;">${char.name}</div>
+            `;
+
+            slot.onclick = () => selectSlot('roster', char.id, null);
+            container.appendChild(slot);
+        });
+
+        // 枠を埋めるためのダミー空き枠
+        for (let i = characters.length; i < 12; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'char-slot empty';
+            empty.style.opacity = '0.3';
+            container.appendChild(empty);
+        }
+    }
+
+    // --- 選択・操作ロジック ---
+    
+    // セットの切り替え
+    function changeSet(direction) {
+        currentSetIndex += direction;
+        if (currentSetIndex < 0) currentSetIndex = 4;
+        if (currentSetIndex > 4) currentSetIndex = 0;
+        
+        // セットを切り替えたら選択状態をリセット
+        selectedType = null;
+        selectedId = null;
+        selectedSlotIndex = null;
+        
+        resetDetails();
+        renderAll();
+    }
+
+    // スロット（パーティ・手持ち）の選択
+    function selectSlot(type, charId, index) {
+        selectedType = type;
+        selectedId = charId;
+        selectedSlotIndex = index;
+
+        if (charId) {
+            const char = characters.find(c => c.id === charId);
+            updateDetails(char);
+        } else {
+            resetDetails();
+        }
+        
+        renderParty();
+        renderRoster();
+        updateActionButton();
+    }
+
+    // 詳細パネルの更新
+    function updateDetails(char) {
+        document.getElementById('det-name').innerText = char.name;
+        document.getElementById('det-attr').innerText = `【${char.attr}属性】`;
+        document.getElementById('det-stats').style.display = 'grid';
+        
+        document.getElementById('det-hp').innerText = char.hp;
+        document.getElementById('det-mp').innerText = char.mp;
+        document.getElementById('det-atk').innerText = char.atk;
+        document.getElementById('det-def').innerText = char.def;
+        document.getElementById('det-matk').innerText = char.matk;
+        document.getElementById('det-mdef').innerText = char.mdef;
+        document.getElementById('det-spd').innerText = char.spd;
+        document.getElementById('det-luk').innerText = char.luk;
+    }
+
+    function resetDetails() {
+        document.getElementById('det-name').innerText = "キャラを選択してください";
+        document.getElementById('det-attr').innerText = "--";
+        document.getElementById('det-stats').style.display = 'none';
+    }
+
+    // アクションボタン（セット/解除）の見た目と文字の更新
+    function updateActionButton() {
+        const btn = document.getElementById('action-btn');
+        btn.className = 'btn-action'; // リセット
+
+        if (selectedType === 'party' && selectedId !== null) {
+            btn.classList.add('mode-remove');
+            btn.innerText = "編成から外す";
+        } else if (selectedType === 'roster' && selectedId !== null) {
+            btn.classList.add('mode-set');
+            btn.innerText = "編成にセット";
+        } else {
+            // 空き枠や未選択時はボタンを隠す
+            btn.style.display = 'none';
+        }
+    }
+
+    // アクションボタン押下時の処理
+    function handleAction() {
+        const currentParty = partySets[currentSetIndex];
+
+        if (selectedType === 'party') {
+            // --- 解除処理 ---
+            // パーティ人数の確認 (最小1人ルール)
+            const count = currentParty.filter(id => id !== null).length;
+            if (count <= 1) {
+                alert("パーティには最低1人の戦闘メンバーが必要です！");
+                return;
+            }
+            // 解除
+            currentParty[selectedSlotIndex] = null;
+            selectedId = null; // 選択状態クリア
+            
+        } else if (selectedType === 'roster') {
+            // --- セット処理 ---
+            // 既に同じキャラがセットにいるかチェック（各セットでキャラ被り不可とする場合）
+            if (currentParty.includes(selectedId)) {
+                alert("そのキャラクターは既にこのセットに編成されています！");
+                return;
+            }
+
+            // 空いているスロットを探す
+            const emptyIndex = currentParty.indexOf(null);
+            if (emptyIndex === -1) {
+                alert("パーティが満員です！先に誰かを外してください。");
+                return;
+            }
+            
+            // セット
+            currentParty[emptyIndex] = selectedId;
+        }
+
+        // 状態を更新して再描画
+        selectedType = null;
+        resetDetails();
+        renderAll();
+    }
+</script>
+
+</body>
+</html>
