@@ -26,12 +26,12 @@
         /* ヘッダー */
         .header { background-color: var(--panel-bg); border-bottom: 2px solid var(--accent-color); padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 14px; }
         .header-box { border: 1px solid var(--border-color); background-color: #222; padding: 4px; text-align: center; border-radius: 4px; }
-        .gold-info { color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .gold-info { color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: bold;}
         .gold-img { width: 14px; height: 14px; border-radius: 50%; }
 
-        /* タブ関連 */
-        .tabs { display: flex; background-color: #222; padding: 5px 10px 0; gap: 5px; }
-        .tab { flex: 1; padding: 10px 0; text-align: center; background-color: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-sub); font-size: 12px; cursor: pointer; border-radius: 4px 4px 0 0; border-bottom: none; }
+        /* タブ関連（5つ入るように調整） */
+        .tabs { display: flex; background-color: #222; padding: 5px 5px 0; gap: 3px; }
+        .tab { flex: 1; padding: 8px 0; text-align: center; background-color: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-sub); font-size: 11px; cursor: pointer; border-radius: 4px 4px 0 0; border-bottom: none; }
         .tab.active { background-color: var(--accent-color); color: #000; font-weight: bold; border-color: var(--accent-color); }
         .sub-tabs { display: none; background-color: #1a1a1a; padding: 8px 15px; gap: 10px; border-bottom: 1px solid var(--border-color); }
         .sub-tab { flex: 1; padding: 6px 0; text-align: center; background-color: #333; border: 1px solid var(--border-color); color: var(--text-sub); font-size: 11px; cursor: pointer; border-radius: 15px; }
@@ -49,7 +49,7 @@
         .preview-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .preview-name { font-size: 16px; font-weight: bold; color: var(--accent-color); }
         .preview-rank { font-size: 12px; background: #444; padding: 2px 6px; border-radius: 4px; }
-        .preview-desc { font-size: 13px; color: var(--text-sub); line-height: 1.4; flex: 1; white-space: pre-wrap; }
+        .preview-desc { font-size: 12px; color: var(--text-sub); line-height: 1.4; flex: 1; white-space: pre-wrap; }
         .preview-actions { display: flex; justify-content: flex-end; }
         .btn-use { background-color: var(--btn-use); color: white; border: none; padding: 8px 24px; border-radius: 4px; font-weight: bold; display: none; }
 
@@ -77,6 +77,7 @@
         <div class="tab" onclick="switchCategory('helper', this)">手助け</div>
         <div class="tab" onclick="switchCategory('material', this)">素材</div>
         <div class="tab" onclick="switchCategory('equipment', this)">装備</div>
+        <div class="tab" onclick="switchCategory('skill', this)">スキルの書</div>
     </div>
 
     <div id="sub-tabs" class="sub-tabs">
@@ -115,7 +116,7 @@
             <img src="mix.jpg" alt="合成" class="nav-img">
             <div>合成</div>
         </a>
-        <a href="#" class="nav-btn">
+        <a href="shop.html" class="nav-btn">
             <img src="shop.jpg" alt="ショップ" class="nav-img">
             <div>ショップ</div>
         </a>
@@ -143,6 +144,7 @@
             { id: 3, name: "陽炎の赤砂", rank: "C", desc: "常に熱を帯びており、火属性の合成に重宝される。", count: 8, type: "view", icon: "red.jpg" },
             { id: 8, name: "万年氷の霜葉", rank: "B", desc: "決して溶けることのない、冷気を放つ氷の葉。", count: 2, type: "view", icon: "White.jpg" }
         ],
+        equipment: [], // ダミー用。実際は下の武器・防具・アクセを読み込む
         weapon: [
             { id: 301, name: "見習いの短剣", rank: "F", desc: "【火属性】\nステータス: 攻撃+10\n扱いやすい基本的な短剣。", count: 1, type: "view" },
             { id: 302, name: "重装兵の大剣", rank: "C", desc: "【無属性】\nステータス: 攻撃+45 俊敏性-5\n重く威力の高い剣。", count: 1, type: "view" },
@@ -155,6 +157,12 @@
         accessory: [
             { id: 501, name: "命の指輪", rank: "D", desc: "【無属性】\nステータス: HP+50\n装備部位: 指\n僅かに生命力を高める指輪。", count: 1, type: "view" },
             { id: 502, name: "疾風の耳飾り", rank: "B", desc: "【風属性】\nステータス: 俊敏性+20 運+5\n装備部位: 耳\n風の魔力を帯びた耳飾り。", count: 1, type: "view" }
+        ],
+        // 追加：スキルの書データ
+        skill: [
+            { id: 601, name: "ファイアの書", rank: "F", desc: "【火属性 / 魔法攻撃】\n必要pt: 2pt\n敵単体に小さな炎を放ちダメージを与える。", count: 2, type: "view", icon: "red.jpg" },
+            { id: 602, name: "プロテクトの書", rank: "C", desc: "【光属性 / バフ】\n必要pt: 10pt\n味方単体の防御力と魔法防御力を一定ターン上昇させる。", count: 1, type: "view", icon: "White.jpg" },
+            { id: 603, name: "ダークエッジの書", rank: "B", desc: "【闇属性 / 物理攻撃】\n必要pt: 15pt\n闇の魔力を刃に纏わせ、敵単体に強力な斬撃を見舞う。", count: 1, type: "view", icon: "gray.jpg" }
         ]
     };
 
@@ -188,7 +196,7 @@
     function renderItems(dataKey) {
         const listArea = document.getElementById('item-list');
         listArea.innerHTML = '';
-        const items = itemData[dataKey];
+        const items = itemData[dataKey] || []; // 空配列フォールバック
         items.forEach(item => {
             const slot = document.createElement('div');
             slot.className = 'item-slot';
