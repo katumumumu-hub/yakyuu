@@ -3,298 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>バトル選択 - 魔物の塔</title>
+    <title>バトル - 魔物の塔</title>
     <style>
-        /* --- 基本設定（他画面と共通） --- */
+        /* --- 基本設定 --- */
         :root {
             --bg-color: #1a1a1a;
             --panel-bg: #2d2d2d;
             --border-color: #4a4a4a;
             --text-main: #f0f0f0;
             --text-sub: #a0a0a0;
-            --accent-color: #c9a050; /* ゴールド */
-            --highlight-color: #e67e22; /* 選択中 */
-            --btn-challenge: #8e44ad; /* バトル開始ボタン */
+            --accent-color: #c9a050; 
+            --highlight-color: #e67e22; 
+            --btn-challenge: #8e44ad;
+            --hp-color: #27ae60;
+            --mp-color: #2980b9;
+            --atb-color: #f1c40f;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-
         body { background-color: #000; color: var(--text-main); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-
         #game-container { width: 100%; max-width: 430px; height: 100%; background-color: var(--bg-color); display: flex; flex-direction: column; position: relative; }
 
-        /* --- ヘッダー --- */
+        /* --- 共通ヘッダー（階層選択用） --- */
         .header { background-color: var(--panel-bg); border-bottom: 2px solid var(--accent-color); padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 14px; flex-shrink: 0; }
         .header-box { border: 1px solid var(--border-color); background-color: #222; padding: 4px; text-align: center; border-radius: 4px; }
         .gold-info { color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: bold;}
         .gold-img { width: 14px; height: 14px; border-radius: 50%; }
 
-        /* --- 敵詳細プレビューエリア（上部固定） --- */
-        .preview-area {
-            background-color: #111;
-            border-bottom: 2px solid var(--accent-color);
-            padding: 12px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 200px;
-        }
-
-        .preview-top {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .enemy-img-box {
-            width: 60px;
-            height: 60px;
-            background-color: #222;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
+        /* =========================================
+           階層選択ビューのスタイル
+        ========================================= */
+        .preview-area { background-color: #111; border-bottom: 2px solid var(--accent-color); padding: 12px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; min-height: 200px; }
+        .preview-top { display: flex; gap: 12px; align-items: center; }
+        .enemy-img-box { width: 60px; height: 60px; background-color: #222; border: 1px solid var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .enemy-img { width: 80%; height: 80%; object-fit: cover; border-radius: 4px; }
-
         .enemy-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
         .enemy-name-row { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: bold; }
         .floor-badge { background-color: var(--accent-color); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
-        
-        .attr-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #fff;
-        }
-
+        .attr-icon { width: 18px; height: 18px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; }
         .drops-row { font-size: 11px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; }
         .drop-img { width: 14px; height: 14px; border-radius: 50%; }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 4px 8px;
-            font-size: 11px;
-            background-color: var(--panel-bg);
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #333;
-        }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 8px; font-size: 11px; background-color: var(--panel-bg); padding: 8px; border-radius: 6px; border: 1px solid #333; }
         .stat-item { display: flex; justify-content: space-between; color: var(--text-sub); }
         .stat-val { color: var(--text-main); font-weight: bold; }
-
-        .btn-challenge {
-            background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%);
-            color: white;
-            border: 1px solid #732d91;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            box-shadow: 0 4px 0 #5b247a;
-            display: none; /* 初期非表示 */
-        }
+        
+        .btn-challenge { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); color: white; border: 1px solid #732d91; padding: 12px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; box-shadow: 0 4px 0 #5b247a; display: none; }
         .btn-challenge:active { transform: translateY(4px); box-shadow: 0 0 0 #5b247a; }
 
-        /* --- 階層リストエリア（スクロール） --- */
-        .floor-list-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            background-color: var(--bg-color);
-            position: relative;
-        }
-        
-        /* 塔の背景線 */
-        .tower-line {
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: #333;
-            transform: translateX(-50%);
-            z-index: 0;
-        }
+        .floor-list-area { flex: 1; overflow-y: auto; padding: 15px; background-color: var(--bg-color); position: relative; }
+        .tower-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background-color: #333; transform: translateX(-50%); z-index: 0; }
+        .floor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; position: relative; z-index: 1; }
+        .floor-btn { aspect-ratio: 1/1; background-color: #222; border: 2px solid var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; cursor: pointer; color: var(--text-main); position: relative; transition: 0.2s; }
+        .floor-btn.locked { background-color: #111; color: #444; border-color: #222; cursor: not-allowed; }
+        .floor-btn.locked::after { content: "🔒"; position: absolute; font-size: 12px; opacity: 0.5; }
+        .floor-btn.cleared { background-color: #1e372e; border-color: #27ae60; color: #bdc3c7; }
+        .floor-btn.current { background-color: var(--accent-color); border-color: #f1c40f; color: #000; box-shadow: 0 0 15px rgba(201, 160, 80, 0.6); animation: pulse 1.5s infinite; }
+        .floor-btn.selected { border-color: #fff; transform: scale(1.1); z-index: 2; }
+        @keyframes pulse { 0% { box-shadow: 0 0 5px rgba(201, 160, 80, 0.4); } 50% { box-shadow: 0 0 20px rgba(201, 160, 80, 0.8); } 100% { box-shadow: 0 0 5px rgba(201, 160, 80, 0.4); } }
 
-        .floor-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            position: relative;
-            z-index: 1;
-            /* 100階が上、1階が下になるようにコンテンツを配置 */
-        }
-
-        .floor-btn {
-            aspect-ratio: 1/1;
-            background-color: #222;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            color: var(--text-main);
-            position: relative;
-            transition: 0.2s;
-        }
-        
-        /* ロック中（未到達） */
-        .floor-btn.locked {
-            background-color: #111;
-            color: #444;
-            border-color: #222;
-            cursor: not-allowed;
-        }
-        .floor-btn.locked::after {
-            content: "🔒";
-            position: absolute;
-            font-size: 12px;
-            opacity: 0.5;
-        }
-
-        /* クリア済み */
-        .floor-btn.cleared {
-            background-color: #1e372e;
-            border-color: #27ae60;
-            color: #bdc3c7;
-        }
-
-        /* 現在挑戦可能（最前線） */
-        .floor-btn.current {
-            background-color: var(--accent-color);
-            border-color: #f1c40f;
-            color: #000;
-            box-shadow: 0 0 15px rgba(201, 160, 80, 0.6);
-            animation: pulse 1.5s infinite;
-        }
-
-        /* 選択中 */
-        .floor-btn.selected {
-            border-color: #fff;
-            transform: scale(1.1);
-            z-index: 2;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 5px rgba(201, 160, 80, 0.4); }
-            50% { box-shadow: 0 0 20px rgba(201, 160, 80, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(201, 160, 80, 0.4); }
-        }
-
-        /* --- ボトムナビ --- */
+        /* ボトムナビ */
         .bottom-nav { display: flex; background-color: #111; height: 60px; border-top: 1px solid #000; flex-shrink: 0; }
         .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #777; font-size: 11px; text-decoration: none; border-right: 1px solid #222; }
         .nav-btn:last-child { border-right: none; }
         .nav-btn.active { color: var(--accent-color); background-color: #222; }
         .nav-img { width: 28px; height: 28px; margin-bottom: 2px; border-radius: 6px; object-fit: cover; }
+
+        /* =========================================
+           バトルビューのスタイル
+        ========================================= */
+        #battle-view { background-color: #0f0f0f; }
+        .battle-header { background-color: #222; border-bottom: 2px solid var(--accent-color); padding: 8px 15px; text-align: center; font-weight: bold; font-size: 14px; color: var(--accent-color); flex-shrink: 0; }
+        
+        .enemy-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative; }
+        .battle-enemy-img-box { width: 120px; height: 120px; background-color: #111; border: 2px solid #555; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
+        .enemy-status { width: 80%; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .b-enemy-name { font-weight: bold; font-size: 14px; margin-bottom: 5px; text-align: center; }
+        
+        .message-area { height: 60px; background-color: rgba(34, 34, 34, 0.9); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 8px 15px; font-size: 13px; line-height: 1.4; color: #fff; display: flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; }
+        
+        .party-area { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background-color: #151515; flex-shrink: 0; }
+        .char-card { background-color: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 6px; padding: 6px; display: flex; gap: 8px; transition: 0.2s; }
+        .char-card.active-turn { border-color: var(--atb-color); box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); background-color: #333; }
+        .char-card.dead { opacity: 0.4; }
+        .char-icon { width: 45px; height: 45px; background-color: #111; border-radius: 4px; object-fit: cover; border: 1px solid #444; flex-shrink: 0; }
+        .char-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .char-name { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .bar-container { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #aaa; }
+        .bar-label { width: 20px; }
+        .bar-wrap { flex: 1; height: 6px; background-color: #111; border: 1px solid #000; border-radius: 3px; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width 0.1s linear; }
+        .hp-fill { background-color: var(--hp-color); }
+        .mp-fill { background-color: var(--mp-color); }
+        .atb-fill { background-color: var(--atb-color); }
+        
+        .command-area { padding: 10px; background-color: var(--panel-bg); border-top: 2px solid var(--accent-color); display: none; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        .cmd-row { display: flex; gap: 8px; }
+        .btn-cmd { flex: 1; padding: 12px; background-color: #333; border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-cmd:active { background-color: #555; }
+        .btn-cmd.attack { border-color: #e74c3c; }
+        .btn-cmd.skill { border-color: #9b59b6; }
+        .btn-cmd.item { border-color: #2ecc71; }
+
+        /* リザルト画面 */
+        .result-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+        .result-box { background-color: var(--panel-bg); border: 2px solid var(--accent-color); border-radius: 8px; width: 100%; padding: 20px; text-align: center; }
+        .result-title { font-size: 24px; font-weight: bold; color: var(--accent-color); margin-bottom: 15px; }
+        .result-desc { font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+        .drop-list { background: #111; padding: 10px; border-radius: 4px; text-align: left; font-size: 13px; margin-bottom: 20px; }
+        .btn-home { background: linear-gradient(180deg, #c9a050 0%, #a07d35 100%); color: #000; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+
+        .shake { animation: shake 0.3s; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <div class="header">
-        <div class="header-box">探索者</div>
-        <div class="header-box" id="header-floor">1階</div>
-        <div class="header-box gold-info">
-            <img src="gold.jpg" class="gold-img"> 1250G
+    
+    <div id="select-view" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
+            <div class="header-box">探索者</div>
+            <div class="header-box" id="header-floor">1階</div>
+            <div class="header-box gold-info"><img src="gold.jpg" class="gold-img"> 1250G</div>
         </div>
-    </div>
 
-    <div class="preview-area" id="preview-area">
-        <div style="text-align:center; color: #666; margin-top: 30px;" id="preview-placeholder">
-            挑戦する階層を選択してください
-        </div>
-        
-        <div id="preview-content" style="display: none; flex-direction: column; gap: 10px;">
-            <div class="preview-top">
-                <div class="enemy-img-box">
-                    <img src="battle.jpg" class="enemy-img">
-                </div>
-                <div class="enemy-info">
-                    <div class="enemy-name-row">
-                        <span class="floor-badge" id="p-floor">1F</span>
-                        <span id="p-name">スライム</span>
-                        <div class="attr-icon" id="p-attr">水</div>
-                    </div>
-                    <div class="drops-row">
-                        ドロップ予想: <img src="gold.jpg" class="drop-img"> <img src="red.jpg" class="drop-img" id="p-drop1"> <img src="White.jpg" class="drop-img" id="p-drop2">
+        <div class="preview-area">
+            <div id="preview-placeholder" style="text-align:center; color: #666; margin-top: 30px;">挑戦する階層を選択してください</div>
+            <div id="preview-content" style="display: none; flex-direction: column; gap: 10px;">
+                <div class="preview-top">
+                    <div class="enemy-img-box"><img src="battle.jpg" class="enemy-img"></div>
+                    <div class="enemy-info">
+                        <div class="enemy-name-row">
+                            <span class="floor-badge" id="p-floor">1F</span>
+                            <span id="p-name">スライム</span>
+                            <div class="attr-icon" id="p-attr">水</div>
+                        </div>
+                        <div class="drops-row">ドロップ予想: <img src="gold.jpg" class="drop-img"> <img src="red.jpg" class="drop-img"> <img src="White.jpg" class="drop-img"></div>
                     </div>
                 </div>
+                <div class="stats-grid">
+                    <div class="stat-item">HP <span class="stat-val" id="p-hp">0</span></div>
+                    <div class="stat-item">MP <span class="stat-val" id="p-mp">0</span></div>
+                    <div class="stat-item">攻撃 <span class="stat-val" id="p-atk">0</span></div>
+                    <div class="stat-item">防御 <span class="stat-val" id="p-def">0</span></div>
+                    <div class="stat-item">魔攻 <span class="stat-val" id="p-matk">0</span></div>
+                    <div class="stat-item">魔防 <span class="stat-val" id="p-mdef">0</span></div>
+                    <div class="stat-item">俊敏 <span class="stat-val" id="p-spd">0</span></div>
+                    <div class="stat-item">運 <span class="stat-val" id="p-luk">0</span></div>
+                </div>
+                <button class="btn-challenge" id="btn-challenge" onclick="startBattle()">挑戦する</button>
             </div>
-            
-            <div class="stats-grid">
-                <div class="stat-item">HP <span class="stat-val" id="p-hp">0</span></div>
-                <div class="stat-item">MP <span class="stat-val" id="p-mp">0</span></div>
-                <div class="stat-item">攻撃 <span class="stat-val" id="p-atk">0</span></div>
-                <div class="stat-item">防御 <span class="stat-val" id="p-def">0</span></div>
-                <div class="stat-item">魔攻 <span class="stat-val" id="p-matk">0</span></div>
-                <div class="stat-item">魔防 <span class="stat-val" id="p-mdef">0</span></div>
-                <div class="stat-item">俊敏 <span class="stat-val" id="p-spd">0</span></div>
-                <div class="stat-item">運 <span class="stat-val" id="p-luk">0</span></div>
-            </div>
+        </div>
 
-            <button class="btn-challenge" id="btn-challenge" onclick="location.href='battle.html'">挑戦する</button>
+        <div class="floor-list-area" id="floor-list-area">
+            <div class="tower-line"></div>
+            <div class="floor-grid" id="floor-grid"></div>
+        </div>
+
+        <div class="bottom-nav" id="bottom-nav">
+            <a href="index.html" class="nav-btn"><img src="home.jpg" class="nav-img"><div>ホーム</div></a>
+            <a href="team.html" class="nav-btn"><img src="character.jpg" class="nav-img"><div>仲間</div></a>
+            <a href="battleselect.html" class="nav-btn active"><img src="battle.jpg" class="nav-img"><div>バトル</div></a>
+            <a href="mix.html" class="nav-btn"><img src="mix.jpg" class="nav-img"><div>合成</div></a>
+            <a href="shop.html" class="nav-btn"><img src="shop.jpg" class="nav-img"><div>ショップ</div></a>
+            <a href="item.html" class="nav-btn"><img src="item.jpg" class="nav-img"><div>アイテム</div></a>
         </div>
     </div>
 
-    <div class="floor-list-area" id="floor-list-area">
-        <div class="tower-line"></div>
-        <div class="floor-grid" id="floor-grid">
+    <div id="battle-view" style="display: none; flex-direction: column; height: 100%;">
+        <div class="battle-header" id="battle-header-txt">BATTLE - 1階</div>
+
+        <div class="enemy-area">
+            <div class="battle-enemy-img-box" id="enemy-sprite"><img src="battle.jpg" class="enemy-img"></div>
+            <div class="enemy-status">
+                <div class="b-enemy-name" id="b-en-name">スライム 【水】</div>
+                <div class="bar-container"><div class="bar-label">HP</div><div class="bar-wrap"><div class="bar-fill hp-fill" id="b-en-hp-bar"></div></div><span id="b-en-hp-txt">0</span></div>
+                <div class="bar-container"><div class="bar-label">MP</div><div class="bar-wrap"><div class="bar-fill mp-fill" id="b-en-mp-bar"></div></div><span id="b-en-mp-txt">0</span></div>
+                <div class="bar-container"><div class="bar-label">ATB</div><div class="bar-wrap"><div class="bar-fill atb-fill" id="b-en-atb-bar"></div></div></div>
             </div>
+        </div>
+
+        <div class="message-area" id="msg-box">戦闘開始！<br>ゲージが溜まったキャラクターから行動できます。</div>
+        <div class="party-area" id="party-area"></div>
+
+        <div class="command-area" id="cmd-area">
+            <div style="font-size: 12px; color: var(--accent-color); margin-bottom: 4px; text-align: center;" id="cmd-char-name">誰かのターン</div>
+            <div class="cmd-row">
+                <button class="btn-cmd attack" onclick="executeCommand('attack')">通常攻撃</button>
+            </div>
+            <div class="cmd-row">
+                <button class="btn-cmd skill" onclick="executeCommand('skill')">魔法スキル<br><span style="font-size:10px; font-weight:normal;">(MP20消費)</span></button>
+                <button class="btn-cmd item" onclick="executeCommand('item')">アイテム<br><span style="font-size:10px; font-weight:normal;">(HP100回復)</span></button>
+            </div>
+        </div>
     </div>
 
-    <div class="bottom-nav">
-        <a href="index.html" class="nav-btn">
-            <img src="home.jpg" alt="ホーム" class="nav-img">
-            <div>ホーム</div>
-        </a>
-        <a href="team.html" class="nav-btn">
-            <img src="character.jpg" alt="仲間" class="nav-img">
-            <div>仲間</div>
-        </a>
-        <a href="battleselect.html" class="nav-btn active">
-            <img src="battle.jpg" alt="バトル" class="nav-img">
-            <div>バトル</div>
-        </a>
-        <a href="mix.html" class="nav-btn">
-            <img src="mix.jpg" alt="合成" class="nav-img">
-            <div>合成</div>
-        </a>
-        <a href="shop.html" class="nav-btn">
-            <img src="shop.jpg" alt="ショップ" class="nav-img">
-            <div>ショップ</div>
-        </a>
-        <a href="item.html" class="nav-btn">
-            <img src="item.jpg" alt="アイテム" class="nav-img">
-            <div>アイテム</div>
-        </a>
+    <div class="result-screen" id="result-view">
+        <div class="result-box">
+            <div class="result-title" id="res-title">VICTORY!!</div>
+            <div class="result-desc" id="res-desc">魔物を討伐した！</div>
+            <div class="drop-list" id="res-drops"></div>
+            <div style="font-size: 11px; color: #aaa; margin-bottom: 15px;">※戦闘終了により、生存・死亡に関わらず<br>全員のHP・MPが最大値の30%回復しました。</div>
+            <button class="btn-home" onclick="location.href='index.html'">ホームへ戻る</button>
+        </div>
     </div>
+
 </div>
 
 <script>
-    // --- 進行状況の設定 ---
-    // ご要望通り「最初は1階のみ選択可能」の状態にします。
-    // （テスト用に進行度を進めたい場合は、ここの数値を20などに変更してください）
+    /* =========================================
+       データ定義と状態管理
+    ========================================= */
     const MAX_FLOOR = 100;
     let highestUnlockedFloor = 1; 
     let selectedFloor = null;
 
-    // --- 属性データ ---
+    let enemy = {};
+    let party = [
+        { id: 1, name: "焔の剣士", attr: "火", hp: 1250, maxHp: 1250, mp: 522, maxMp: 522, atk: 150, def: 120, spd: 110, atb: 0 },
+        { id: 2, name: "火炎の魔道士", attr: "火", hp: 800, maxHp: 800, mp: 900, maxMp: 900, atk: 40, def: 60, spd: 95, atb: 0 },
+        { id: 3, name: "流水の弓使い", attr: "水", hp: 950, maxHp: 950, mp: 400, maxMp: 400, atk: 130, def: 80, spd: 140, atb: 0 },
+        { id: 4, name: "雷鳴の騎士", attr: "雷", hp: 1400, maxHp: 1400, mp: 300, maxMp: 300, atk: 160, def: 150, spd: 100, atb: 0 }
+    ];
+
     const attributes = [
         { name: "火", color: "#e74c3c", txtColor: "#fff" },
         { name: "水", color: "#3498db", txtColor: "#fff" },
@@ -303,109 +236,288 @@
         { name: "闇", color: "#8e44ad", txtColor: "#fff" }
     ];
 
-    // --- 敵データ生成ロジック（階層に応じて自動計算） ---
+    /* =========================================
+       階層選択ロジック
+    ========================================= */
+    window.onload = () => {
+        document.getElementById('header-floor').innerText = `${highestUnlockedFloor}階`;
+        renderFloorGrid();
+        const listArea = document.getElementById('floor-list-area');
+        listArea.scrollTop = listArea.scrollHeight; // 1階へスクロール
+        selectFloor(highestUnlockedFloor);
+    };
+
     function getEnemyData(floor) {
-        const attr = attributes[floor % 5]; // 階層によって属性がローテーションするダミー
-        
+        const attr = attributes[floor % 5];
         let name = "塔の魔物";
         if (floor % 10 === 0) name = "階層の主 (ボス)";
         else if (floor <= 10) name = "スライム";
         else if (floor <= 30) name = "ゴブリン";
         else if (floor <= 60) name = "オーク";
-        else if (floor <= 90) name = "デーモン";
-        else name = "ドラゴン";
+        else name = "デーモン";
 
         return {
-            floor: floor,
-            name: name,
-            attrName: attr.name,
-            attrColor: attr.color,
-            attrTxt: attr.txtColor,
-            hp: floor * 250 + 500,
-            mp: floor * 50 + 100,
-            atk: floor * 15 + 30,
-            def: floor * 12 + 20,
-            matk: floor * 15 + 20,
-            mdef: floor * 12 + 20,
-            spd: 90 + Math.floor(floor * 1.5),
-            luk: 50 + Math.floor(floor / 2)
+            floor: floor, name: name, attrName: attr.name, attrColor: attr.color, attrTxt: attr.txtColor,
+            hp: floor * 250 + 500, maxHp: floor * 250 + 500,
+            mp: floor * 50 + 100, maxMp: floor * 50 + 100,
+            atk: floor * 15 + 30, def: floor * 12 + 20, spd: 90 + Math.floor(floor * 1.5), atb: 0
         };
     }
 
-    // --- 画面初期化 ---
-    window.onload = () => {
-        document.getElementById('header-floor').innerText = `${highestUnlockedFloor}階`;
-        renderFloorGrid();
-        
-        // 1階（一番下）にスクロールを合わせる
-        const listArea = document.getElementById('floor-list-area');
-        listArea.scrollTop = listArea.scrollHeight;
-
-        // 最初から1階を選択状態にしておく
-        selectFloor(highestUnlockedFloor);
-    };
-
-    // --- 階層ボタンの生成（100階から1階へ降順） ---
     function renderFloorGrid() {
         const grid = document.getElementById('floor-grid');
         grid.innerHTML = '';
-
         for (let i = MAX_FLOOR; i >= 1; i--) {
             const btn = document.createElement('button');
-            btn.className = 'floor-btn';
-            btn.innerText = i;
-            btn.id = `floor-btn-${i}`;
-
+            btn.className = 'floor-btn'; btn.innerText = i; btn.id = `floor-btn-${i}`;
             if (i > highestUnlockedFloor) {
-                // 未開放
-                btn.classList.add('locked');
-                btn.onclick = () => alert("まだこの階層には挑戦できません！");
+                btn.classList.add('locked'); btn.onclick = () => alert("まだ挑戦できません！");
             } else if (i === highestUnlockedFloor) {
-                // 最新の挑戦可能階層
-                btn.classList.add('current');
-                btn.onclick = () => selectFloor(i);
+                btn.classList.add('current'); btn.onclick = () => selectFloor(i);
             } else {
-                // クリア済み（再挑戦可能）
-                btn.classList.add('cleared');
-                btn.onclick = () => selectFloor(i);
+                btn.classList.add('cleared'); btn.onclick = () => selectFloor(i);
             }
-
             grid.appendChild(btn);
         }
     }
 
-    // --- 階層選択時のプレビュー更新 ---
     function selectFloor(floor) {
         selectedFloor = floor;
-
-        // ボタンの選択状態（白枠）をリセット＆付与
         document.querySelectorAll('.floor-btn').forEach(b => b.classList.remove('selected'));
-        const activeBtn = document.getElementById(`floor-btn-${floor}`);
-        if(activeBtn) activeBtn.classList.add('selected');
+        if(document.getElementById(`floor-btn-${floor}`)) document.getElementById(`floor-btn-${floor}`).classList.add('selected');
 
-        // プレビュー画面の切り替え
         document.getElementById('preview-placeholder').style.display = 'none';
         document.getElementById('preview-content').style.display = 'flex';
         document.getElementById('btn-challenge').style.display = 'block';
 
-        // 敵データの取得と反映
-        const enemy = getEnemyData(floor);
+        enemy = getEnemyData(floor); // 現在の選択中の敵として保持
+        
         document.getElementById('p-floor').innerText = `${enemy.floor}F`;
         document.getElementById('p-name').innerText = enemy.name;
-        
         const attrIcon = document.getElementById('p-attr');
-        attrIcon.innerText = enemy.attrName;
-        attrIcon.style.backgroundColor = enemy.attrColor;
-        attrIcon.style.color = enemy.attrTxt;
-
-        document.getElementById('p-hp').innerText = enemy.hp;
-        document.getElementById('p-mp').innerText = enemy.mp;
-        document.getElementById('p-atk').innerText = enemy.atk;
-        document.getElementById('p-def').innerText = enemy.def;
-        document.getElementById('p-matk').innerText = enemy.matk;
-        document.getElementById('p-mdef').innerText = enemy.mdef;
+        attrIcon.innerText = enemy.attrName; attrIcon.style.backgroundColor = enemy.attrColor; attrIcon.style.color = enemy.attrTxt;
+        document.getElementById('p-hp').innerText = enemy.hp; document.getElementById('p-mp').innerText = enemy.mp;
+        document.getElementById('p-atk').innerText = enemy.atk; document.getElementById('p-def').innerText = enemy.def;
         document.getElementById('p-spd').innerText = enemy.spd;
-        document.getElementById('p-luk').innerText = enemy.luk;
+    }
+
+    /* =========================================
+       バトルロジック
+    ========================================= */
+    const ATB_MAX = 1000;
+    let battleState = 'init'; 
+    let activeUnit = null;    
+    let lastFrameTime = Date.now();
+    let animationFrameId;
+
+    // 挑戦ボタン押下時
+    function startBattle() {
+        // ビューの切り替え
+        document.getElementById('select-view').style.display = 'none';
+        document.getElementById('battle-view').style.display = 'flex';
+
+        // バトル画面の初期化
+        document.getElementById('battle-header-txt').innerText = `BATTLE - ${selectedFloor}階`;
+        document.getElementById('b-en-name').innerText = `${enemy.name} 【${enemy.attrName}】`;
+        
+        // 全員のATBリセット
+        enemy.atb = 0;
+        party.forEach(c => c.atb = 0);
+
+        renderBattleParty();
+        updateBattleGauges();
+        
+        showMessage("戦闘開始！<br>ゲージが溜まったキャラクターから行動できます。");
+
+        // 戦闘ループ開始
+        setTimeout(() => {
+            battleState = 'active';
+            lastFrameTime = Date.now();
+            animationFrameId = requestAnimationFrame(battleLoop);
+        }, 1500);
+    }
+
+    function showMessage(msg) {
+        document.getElementById('msg-box').innerHTML = msg;
+    }
+
+    function renderBattleParty() {
+        const container = document.getElementById('party-area');
+        container.innerHTML = '';
+        party.forEach((char, index) => {
+            const card = document.createElement('div');
+            card.className = 'char-card'; card.id = `char-card-${index}`;
+            if (char.hp <= 0) card.classList.add('dead');
+            card.innerHTML = `
+                <img src="character.jpg" class="char-icon">
+                <div class="char-info">
+                    <div class="char-name">${char.name}</div>
+                    <div class="bar-container"><div class="bar-label">HP</div><div class="bar-wrap"><div class="bar-fill hp-fill" id="p-hp-bar-${index}"></div></div></div>
+                    <div class="bar-container"><div class="bar-label">MP</div><div class="bar-wrap"><div class="bar-fill mp-fill" id="p-mp-bar-${index}"></div></div></div>
+                    <div class="bar-container"><div class="bar-label">ATB</div><div class="bar-wrap"><div class="bar-fill atb-fill" id="p-atb-bar-${index}"></div></div></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function updateBattleGauges() {
+        document.getElementById('b-en-hp-bar').style.width = `${(enemy.hp / enemy.maxHp) * 100}%`;
+        document.getElementById('b-en-mp-bar').style.width = `${(enemy.mp / enemy.maxMp) * 100}%`;
+        document.getElementById('b-en-atb-bar').style.width = `${Math.min(100, (enemy.atb / ATB_MAX) * 100)}%`;
+        document.getElementById('b-en-hp-txt').innerText = enemy.hp;
+        document.getElementById('b-en-mp-txt').innerText = enemy.mp;
+
+        party.forEach((char, index) => {
+            document.getElementById(`p-hp-bar-${index}`).style.width = `${(char.hp / char.maxHp) * 100}%`;
+            document.getElementById(`p-mp-bar-${index}`).style.width = `${(char.mp / char.maxMp) * 100}%`;
+            document.getElementById(`p-atb-bar-${index}`).style.width = `${Math.min(100, (char.atb / ATB_MAX) * 100)}%`;
+            
+            const card = document.getElementById(`char-card-${index}`);
+            if (char.hp <= 0) { card.classList.add('dead'); char.atb = 0; } 
+            else { card.classList.remove('dead'); }
+        });
+    }
+
+    function battleLoop() {
+        if (battleState !== 'active') return;
+
+        let now = Date.now();
+        let deltaTime = (now - lastFrameTime) / 1000;
+        lastFrameTime = now;
+        let turnUnit = null;
+
+        [enemy, ...party].forEach(unit => {
+            if (unit.hp <= 0) return;
+            unit.atb += unit.spd * 8 * deltaTime; 
+            if (unit.atb >= ATB_MAX && !turnUnit) turnUnit = unit;
+        });
+
+        updateBattleGauges();
+
+        if (turnUnit) {
+            turnUnit.atb = 0; 
+            activeUnit = turnUnit;
+            battleState = turnUnit === enemy ? 'animating' : 'command';
+            updateBattleGauges(); 
+
+            if (turnUnit === enemy) { executeEnemyTurn(); } 
+            else { openCommandMenu(turnUnit); }
+        } else {
+            animationFrameId = requestAnimationFrame(battleLoop);
+        }
+    }
+
+    function openCommandMenu(char) {
+        const index = party.indexOf(char);
+        document.getElementById(`char-card-${index}`).classList.add('active-turn');
+        document.getElementById('cmd-char-name').innerText = `【${char.name}】のコマンド`;
+        document.getElementById('cmd-area').style.display = 'flex';
+        showMessage(`${char.name}のターン！`);
+    }
+
+    function executeCommand(type) {
+        document.getElementById('cmd-area').style.display = 'none';
+        const index = party.indexOf(activeUnit);
+        document.getElementById(`char-card-${index}`).classList.remove('active-turn');
+        battleState = 'animating';
+
+        let msg = ""; let dmg = 0;
+        if (type === 'attack') {
+            dmg = Math.max(1, Math.floor(activeUnit.atk - enemy.def / 2));
+            enemy.hp = Math.max(0, enemy.hp - dmg);
+            msg = `${activeUnit.name}の攻撃！<br>${enemy.name}に ${dmg} のダメージ！`;
+            document.getElementById('enemy-sprite').classList.add('shake');
+            setTimeout(() => document.getElementById('enemy-sprite').classList.remove('shake'), 300);
+        } else if (type === 'skill') {
+            if (activeUnit.mp >= 20) {
+                activeUnit.mp -= 20;
+                dmg = Math.max(1, Math.floor(activeUnit.atk * 1.5 - enemy.def / 2));
+                enemy.hp = Math.max(0, enemy.hp - dmg);
+                msg = `${activeUnit.name}の魔法スキル！<br>${enemy.name}に ${dmg} のダメージ！`;
+                document.getElementById('enemy-sprite').classList.add('shake');
+                setTimeout(() => document.getElementById('enemy-sprite').classList.remove('shake'), 300);
+            } else {
+                msg = `MPが足りない！<br>${activeUnit.name}は何もできなかった...`;
+            }
+        } else if (type === 'item') {
+            activeUnit.hp = Math.min(activeUnit.maxHp, activeUnit.hp + 100);
+            msg = `${activeUnit.name}はアイテムを使った！<br>HPが100回復した！`;
+        }
+
+        showMessage(msg);
+        updateBattleGauges();
+        setTimeout(checkBattleEnd, 1500);
+    }
+
+    function executeEnemyTurn() {
+        showMessage(`${enemy.name}の攻撃！`);
+        setTimeout(() => {
+            const aliveParty = party.filter(c => c.hp > 0);
+            if (aliveParty.length > 0) {
+                const target = aliveParty[Math.floor(Math.random() * aliveParty.length)];
+                let multiplier = 1.0; // 簡易相性
+                let dmg = Math.max(1, Math.floor((enemy.atk * multiplier) - target.def / 2));
+                target.hp = Math.max(0, target.hp - dmg);
+                showMessage(`${target.name}に ${dmg} のダメージ！`);
+                
+                const targetIndex = party.indexOf(target);
+                document.getElementById(`char-card-${targetIndex}`).classList.add('shake');
+                setTimeout(() => document.getElementById(`char-card-${targetIndex}`).classList.remove('shake'), 300);
+            }
+            updateBattleGauges();
+            setTimeout(checkBattleEnd, 1500);
+        }, 1000);
+    }
+
+    function checkBattleEnd() {
+        if (enemy.hp <= 0) { showResult(true); return; }
+        const aliveCount = party.filter(c => c.hp > 0).length;
+        if (aliveCount === 0) { showResult(false); return; }
+
+        battleState = 'active';
+        lastFrameTime = Date.now();
+        animationFrameId = requestAnimationFrame(battleLoop);
+    }
+
+    /* =========================================
+       リザルト処理
+    ========================================= */
+    function showResult(isWin) {
+        battleState = 'end';
+        cancelAnimationFrame(animationFrameId);
+        
+        document.getElementById('result-view').style.display = 'flex';
+
+        if (isWin) {
+            document.getElementById('res-title').innerText = "VICTORY!!";
+            document.getElementById('res-title').style.color = "var(--accent-color)";
+            document.getElementById('res-desc').innerText = `${enemy.name}を討伐した！`;
+            
+            // 進行度を進める（ボス以外で最前線を倒した場合のみ）
+            if(selectedFloor === highestUnlockedFloor && highestUnlockedFloor < MAX_FLOOR) {
+                highestUnlockedFloor++;
+            }
+
+            document.getElementById('res-drops').innerHTML = `
+                <div style="font-weight:bold; margin-bottom:5px;">【獲得アイテム】</div>
+                ・<img src="gold.jpg" style="width:14px; vertical-align:middle;"> ${100 + enemy.floor*10} G<br>
+                ・<img src="gray.jpg" style="width:14px; vertical-align:middle;"> ランダム素材 × ${Math.floor(Math.random() * 3) + 1}
+            `;
+        } else {
+            document.getElementById('res-title').innerText = "GAME OVER";
+            document.getElementById('res-title').style.color = "#e74c3c";
+            document.getElementById('res-desc').innerText = "パーティは全滅してしまった...";
+            document.getElementById('res-drops').innerHTML = `ドロップ品はありません。`;
+        }
+
+        // 30%回復処理
+        party.forEach(char => {
+            let healHp = Math.floor(char.maxHp * 0.30);
+            let healMp = Math.floor(char.maxMp * 0.30);
+            char.hp = Math.min(char.maxHp, char.hp + Math.max(1, healHp));
+            char.mp = Math.min(char.maxMp, char.mp + Math.max(0, healMp));
+        });
     }
 </script>
 
